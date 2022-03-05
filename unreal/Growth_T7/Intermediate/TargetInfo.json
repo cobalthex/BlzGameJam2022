@@ -1,0 +1,14 @@
+{
+	"Targets": [
+		{
+			"Name": "Growth_T7",
+			"Path": "D:\\GitHub\\BlzGameJam2022\\unreal\\Growth_T7\\Source\\Growth_T7.Target.cs",
+			"Type": "Game"
+		},
+		{
+			"Name": "Growth_T7Editor",
+			"Path": "D:\\GitHub\\BlzGameJam2022\\unreal\\Growth_T7\\Source\\Growth_T7Editor.Target.cs",
+			"Type": "Editor"
+		}
+	]
+}
