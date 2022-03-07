@@ -45,6 +45,7 @@ Content Types
 - Military Hub: Generates military drones and creates secondary military structures nearby
 - Energy Hub: Generates builder drones and creates secondary energy structures nearby (also increases maximum energy capacity)
 - Resource Hub: Generates gatherer drones and creates secondary resources structures nearby (also increases organic material storage)
+- Research Hub: Generates thinker drones
 - Terraform Hub: Generates terraforming drones
 
 - Secondary Military Structure: This structure attacks nearby hostile drones
@@ -77,6 +78,7 @@ Content Types
 - Military Drone: Significantly better at combat due to Ranged attack (all Drones take 1 Hit to kill and can attack at a rate of once per 2 sec)
 - Builder Drone: Significantly increased rate of construction and able to build more advanced Structures
 - Gatherer Drone: Significantly increased travel speed and amount of resource accrual per trip
+- Thinker Drone: Consumes resources to think about various research options and improve the player's structures via the tech tree
 - Terraforming Drone: Able to use advanced attack and build actions for structures related to terrain (Destroy Cliffs or dig Water Pools)
 
 --------
