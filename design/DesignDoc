@@ -33,7 +33,8 @@ Structures have areas of influence which colors the grid around them, within thi
 Technical Specs
 - Structure Name: The string name of the structure
 - Structure Type: The categorical type of the structure (eg. Production, Defense, Support, etc) used by Drone AI priority system
-- Structure Cost: The amount/type pairings of resources needed to construct the structure
+- Structure Cost: The amount/type pairings of resources needed to construct the structure (primarily done by Drones)
+- Structure Rank: The level of the structure which determines the multipliers for its functions, locked by research levels
 - Structure Footprint: The area of grid space the structure takes up upon placement expressed as the length of one side of its square
 - Structure Max Influence Area: The area that the structure's influence can grow to cover expressed as the radius of its circle
 - Structure Area Growth Rate: The rate at which the influence area grows per minute
