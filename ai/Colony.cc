@@ -116,22 +116,22 @@ void Colony::PrintBuildings() const
 {
 	for (const auto& bpair : m_allBuildings)
 	{
-		std::cout << "Building ID: " << bpair.first << "\n";
+		std::cout << "Building (ID " << bpair.first << "): ";
 			
 		const auto buildingDef(BuildingDef::TryGet(bpair.second.building));
 		if (!buildingDef)
 		{
-			std::cout << "\t[UNKNOWN]\n";
+			std::cout << "[UNKNOWN]\n";
 			continue;
 		}
 
-		std::cout << "\tName: " << buildingDef->name << "\n";
+		std::cout << buildingDef->name << "\n";
 
 		auto& production(bpair.second.production);
 		const auto& productionDef(ProductionDef::TryGet(production.production));
 		if (productionDef)
 		{
-			std::cout << "\tProduction:\n";
+			std::cout << "\tProduction: " << productionDef->name << "\n";
 			std::cout << "\t\tGeneration: " << production.generation << "\n";
 			std::cout << "\t\tState: " << (int)production.state << "\n";
 		}

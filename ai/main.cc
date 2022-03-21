@@ -29,6 +29,7 @@ int main(int argc, char* argv[])
 
 	const ProductionDef::Id mineIron(ProductionDef::Add(
 	{
+		.name = "Mine iron",
 		.discipline = Discipline::Mining,
 		.duration = std::chrono::milliseconds(1),
 		.outputs {
@@ -40,6 +41,7 @@ int main(int argc, char* argv[])
 	}));
 	const ProductionDef::Id mineCoal(ProductionDef::Add(
 	{
+		.name = "Mine coal",
 		.discipline = Discipline::Mining,
 		.duration = std::chrono::milliseconds(1),
 		.outputs {
@@ -52,6 +54,7 @@ int main(int argc, char* argv[])
 
 	const ProductionDef::Id makeSteel(ProductionDef::Add(
 	{
+		.name = "Make steel",
 		.discipline = Discipline::HeavyIndustry,
 		.duration = std::chrono::milliseconds(2),
 		.inputs {

@@ -85,6 +85,7 @@ enum class ProductionScaleUpMethod
 
 struct ProductionDef : public IDef<ProductionDef>
 {
+	std::string_view name;
 	ProductionType type;
 	Discipline discipline;
 	ProductionScaleUpMethod scaleUpMethod;
@@ -131,7 +132,7 @@ enum class BuildingState
 
 struct BuildingDef : public IDef<BuildingDef>
 {
-	std::string name;
+	std::string_view name;
 	ZoningRestriction zone;
 
 	ProductionDef production;
