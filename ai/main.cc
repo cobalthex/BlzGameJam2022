@@ -2,6 +2,7 @@
 #include "ResourceStore.hh"
 #include "HiveMind.hh"
 #include "Colony.hh"
+#include "Z.hh"
 
 #include <iostream>
 
@@ -11,6 +12,12 @@ void PrintMenu();
 
 int main(int argc, char* argv[])
 {
+	TimeStep time
+	{
+		.delta = std::chrono::milliseconds(1),
+		.now = std::chrono::milliseconds(0),
+	};
+
 	const ResourceDef::Id coal(ResourceDef::Add(
 	{
 		.name = "Coal",
@@ -81,7 +88,7 @@ int main(int argc, char* argv[])
 		.zone = ZoningRestriction::Industrial,
 		.production = mineIron,
 	}));
-	Colony::Default.Provision(ironMine);
+ 	const auto ironMine0(Colony::Default.Provision(ironMine));
 
 	BuildingDef::Id coalMine(BuildingDef::Add(
 	{
@@ -89,7 +96,7 @@ int main(int argc, char* argv[])
 		.zone = ZoningRestriction::Industrial,
 		.production = mineCoal,
 	}));
-	Colony::Default.Provision(coalMine);
+	const auto coalMine0(Colony::Default.Provision(coalMine));
 
 	BuildingDef::Id steelMill(BuildingDef::Add(
 	{
@@ -97,23 +104,20 @@ int main(int argc, char* argv[])
 		.zone = ZoningRestriction::Industrial,
 		.production = makeSteel,
 	}));
-	Colony::Default.Provision(steelMill);
+	const auto steelMill0(Colony::Default.Provision(steelMill));
 
-	HiveMind::Default.CreateCitizen();
-	HiveMind::Default.CreateCitizen();
-	auto citizen3(HiveMind::Default.CreateCitizen());
+	auto citizen(HiveMind::Default.CreateCitizen());
+	HiveMind::Default.AssignToBuilding(time.now, citizen, ironMine0);
 
-	TimeStep time
-	{
-		.delta = std::chrono::milliseconds(1),
-		.total = std::chrono::milliseconds(0),
-	};
+	citizen = HiveMind::Default.CreateCitizen();
+	HiveMind::Default.AssignToBuilding(time.now, citizen, coalMine0);
 
-	//HiveMind.AssignJob(time.total, citizen3, makeSteel);
+	citizen = HiveMind::Default.CreateCitizen();
+	HiveMind::Default.AssignToBuilding(time.now, citizen, steelMill0);
 
 	while (true)
 	{
-		time.total += time.delta;
+		time.now += time.delta;
 
 		PrintMenu();
 		const auto key(std::cin.get());
@@ -121,14 +125,14 @@ int main(int argc, char* argv[])
 		switch (key)
 		{
 		case '1':
+			Z::Tick();
+
+			ResourceStore::Default.Update(time);
 			Colony::Default.Update(time);
 			HiveMind::Default.Update(time);
 			break;
 		case '2':
-			ResourceStore::Default.PrintStores();
-			break;
-		case '3':
-			Colony::Default.PrintBuildings();
+			std::cout << ResourceStore::Default << "\n" << Z::State << "\n";
 			break;
 
 		case 'q':
@@ -147,11 +151,10 @@ int main(int argc, char* argv[])
 void PrintMenu()
 {
 	std::cout <<
-		"Aigh Eye"
+		"Simulation:"
 		"\n--------"
 		"\n1: Tick"
-		"\n2: Stores"
-		"\n3: Buildings"
+		"\n2: State"
 		"\nQ: Quit"
 		"\n";
 }

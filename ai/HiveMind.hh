@@ -17,14 +17,12 @@ public:
 	virtual void Update(const TimeStep& time) override;
 
 	Citizen::Id CreateCitizen();
+	void RemoveCitizen(Citizen::Id citizenId);
 
-	void AssignToBuilding(std::chrono::milliseconds now, Citizen::Id citizen, BuildingDef ::Id building); // make private
+	void AssignToBuilding(Duration now, Citizen::Id citizen, Building::Id building); // make private
 
 private:
-
-private:
-	std::unordered_map<Citizen::Id, Citizen> m_allCitizens;
-	Citizen::Id m_nextCitizenId{};
+	std::unordered_multimap<Discipline, Citizen::Id> m_joblessCitizens;
 };
 
 

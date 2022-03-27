@@ -6,11 +6,13 @@
     <ClInclude Include="HiveMind.hh" />
     <ClInclude Include="ResourceStore.hh" />
     <ClInclude Include="Colony.hh" />
+    <ClInclude Include="Z.hh" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cc" />
     <ClCompile Include="ResourceStore.cc" />
     <ClCompile Include="HiveMind.cc" />
     <ClCompile Include="Colony.cc" />
+    <ClCompile Include="Z.cc" />
   </ItemGroup>
 </Project>

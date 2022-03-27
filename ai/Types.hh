@@ -6,33 +6,36 @@
 
 using Duration = std::chrono::nanoseconds;
 
+template <typename TBase>
 struct IIdent
 {
-	using Id = size_t;
-	static const Id None{ 0 };
+	enum class Id : size_t
+	{
+		None = 0,
+	};
 
-	Id id{ None };
+	Id id{ Id::None };
 	operator Id() const { return id; }
 };
 
 template <typename TDef>
-struct IDef : public IIdent
+struct IDef : public IIdent<TDef>
 {
-	static TDef& Get(Id id)
+	static TDef& Get(IIdent<TDef>::Id id)
 	{
-		return s_definitions[id];
+		return s_definitions[static_cast<size_t>(id)];
 	}
-	static Id Add(TDef def)
+	static IIdent<TDef>::Id Add(TDef def)
 	{
-		const auto nextId(s_definitions.size());
+		const auto nextId(static_cast<IIdent<TDef>::Id>(s_definitions.size()));
 		def.id = nextId;
 		s_definitions.push_back(def);
 		return def.id;
 	}
-	static const TDef* TryGet(Id id)
+	static const TDef* TryGet(IIdent<TDef>::Id id)
 	{
-		if (s_definitions.size() > id)
-			return &s_definitions[id];
+		if (s_definitions.size() > static_cast<size_t>(id))
+			return &s_definitions[static_cast<size_t>(id)];
 		return nullptr;
 	}
 
@@ -75,6 +78,19 @@ enum class Discipline
 	HeavyIndustry,
 	Retail,
 
+};
+
+struct Citizen : public IIdent<Citizen>
+{
+	int happiness;
+	int hunger;
+
+	int proficiency; // increases the longer a citizen performs their job
+					  // changing job disciplines resets this
+
+	Discipline lastDiscipline;
+
+	// TODO: goal planning state machine
 };
 
 enum class ProductionScaleUpMethod
@@ -138,40 +154,38 @@ struct BuildingDef : public IDef<BuildingDef>
 	ProductionDef production;
 };
 
-using Progress = int;
-
-struct Building : public IIdent
+struct Building : public IIdent<Building>
 {
 	BuildingDef::Id building{};
 
 	BuildingState state{};
-	Progress consDemoProgress{}; // construction/demolition progress
 
 	Production production;
-	int citizensEmployed;
+	std::vector<Citizen::Id> citizensEmployed;
 	// todo: store geo coords
 };
 
-struct Citizen : public IIdent
-{
-	int happiness;
-	int hunger;
-
-	int proficiency; // increases the longer a citizen performs their job
-					  // changing job disciplines resets this
-
-	Discipline lastDiscipline;
-
-	// todo: types
-	int goal;
-	int action;
-	int actionCompletionTime;
-
-	int location;
-};
 
 struct TimeStep
 {
 	Duration delta;
-	Duration total; // since game/sim start
+	Duration now; // since game/sim start
+};
+
+template <typename T>
+struct Iterator
+{
+	Iterator(T& ty) : begin(ty.begin()), end(ty.end()) { }
+
+	T::iterator begin;
+	T::iterator end;
+};
+
+template <typename T>
+struct CIterator
+{
+	CIterator(const T& ty) : begin(ty.cbegin()), end(ty.cend()) { }
+
+	T::const_iterator begin;
+	T::const_iterator end;
 };

@@ -1,56 +1,55 @@
 #include "HiveMind.hh"
 #include "ResourceStore.hh"
+#include "Colony.hh"
+#include "Z.hh"
 
 HiveMind HiveMind::Default{};
 
-void HiveMind::Update(const TimeStep& time)
-{
-}
-
 Citizen::Id HiveMind::CreateCitizen()
 {
-	Citizen citizen{};
-	citizen.id = ++m_nextCitizenId;
-	m_allCitizens[citizen] = citizen;
-	return citizen;
+	const auto citizenId(Z::Add(Citizen()));
+	m_joblessCitizens.insert(std::pair(Discipline::Unknown, citizenId));
+	return citizenId;
 }
 
-void HiveMind::AssignToBuilding(std::chrono::milliseconds now, Citizen::Id citizenId, BuildingDef::Id building)
+void HiveMind::RemoveCitizen(Citizen::Id citizenId)
 {
-	auto& citizen(m_allCitizens[citizenId]); // todo: once private take in citizen ref
+	const auto citizen(Z::TryGet(citizenId));
+	if (!citizen) return;
 
-	Discipline newJobType = Discipline::Construction;
+	// TODO: erase from jobless, remove from job
+}
 
-	// TODO
-	//const auto& oldJob(JobDef::TryGet(citizen.production.production));
-	//const auto& newJob(JobDef::Get(production));
+void HiveMind::AssignToBuilding(Duration now, Citizen::Id citizenId, Building::Id buildingId)
+{
+	auto& citizen(Z::Get(citizenId)); // todo: once private take in citizen ref?
+	auto& building(Z::Get(buildingId)); // do this elsewhere?
+	const auto& buildingDef(BuildingDef::Get(building.building));
 
-	//citizen.production = Job
-	//{
-	//	.production = newJob,
-	//	.originalStart = now,
-	//	.start = now,
-	//};
+	if (citizen.lastDiscipline != buildingDef.production.discipline)
+	{
+		citizen.lastDiscipline = buildingDef.production.discipline;
+		citizen.proficiency = 0;
+	}
 
-	//// todo: pull out into own method
-	//switch (newJob.type)
-	//{
-	//case JobType::Resources:
-	//	for (const auto& input : newJob.inputs)
-	//	{
-	//		auto& store(m_stores[input.resource]);
-	//		store.quantity -= input.quantity;
-	//	}
-	//	break;
+	building.citizensEmployed.push_back(citizen);
+	citizen.happiness += 1; // some value here?
+}
 
-	//case JobType::Spawner:
-	//	break;
+void HiveMind::Update(const TimeStep& time)
+{
+	auto citizenIter(Z::AllCitizens());
+	for (auto citizen(citizenIter.begin); citizen != citizenIter.end; ++citizen)
+	{
+		++citizen->second.hunger;
 
-	//default:
-	//	break;
-	//}
+		// TODO: check hunger
+		// consume food if high enough
+		// if no food available then get mad
+		// if hunger high enough, die (?)
 
-	//if (oldJob && oldJob->discipline == newJob.discipline) return;
-	//citizen.lastDiscipline = newJob.discipline;
-	citizen.proficiency = 0;
+		// if happiness < 0 then depart?
+	}
+
+
 }

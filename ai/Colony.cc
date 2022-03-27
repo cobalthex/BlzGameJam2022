@@ -1,5 +1,6 @@
 #include "Colony.hh"
 #include "ResourceStore.hh"
+#include "Z.hh"
 
 Colony Colony::Default{};
 
@@ -10,31 +11,15 @@ Building::Id Colony::Provision(BuildingDef::Id buildingDefId)
 	{
 		.building = buildingDef,
 		.state = BuildingState::Constructing,
-		.consDemoProgress = 0,
 		.production
 		{
 			.production = buildingDef.production,
 			.generation = 0,
 			.state = ProductionState::NotStarted,
 		},
-		.citizensEmployed = 1, // TODO: TESTING
+		.citizensEmployed = {},
 	};
-	return Add(building);
-}
-
-Building::Id Colony::Add(Building building)
-{
-	building.id = ++m_nextBuildingId;
-	m_allBuildings[building] = building;
-	// building type (e.g. storage)
-	return building;
-}
-
-void Colony::Remove(Building::Id buildingId)
-{
-	// building type reset
-	// return value?
-	m_allBuildings.erase(buildingId);
+	return Z::Add(building);
 }
 
 int CalculateScale(ProductionScaleUpMethod method, int scale, int value)
@@ -52,15 +37,16 @@ int CalculateScale(ProductionScaleUpMethod method, int scale, int value)
 
 void Colony::Update(const TimeStep& time)
 {
-	for (auto& bpair : m_allBuildings)
+	const auto bldgIter(Z::AllBuildings());
+	for (auto bpair(bldgIter.begin); bpair != bldgIter.end; ++bpair)
 	{
-		const auto buildingDef(BuildingDef::TryGet(bpair.second.building));
+		const auto buildingDef(BuildingDef::TryGet(bpair->second.building));
 		if (!buildingDef)
 			continue;
 
 		// todo: check building state
 
-		auto& production(bpair.second.production);
+		auto& production(bpair->second.production);
 		const auto& productionDef(ProductionDef::TryGet(production.production));
 		switch (production.state)
 		{
@@ -70,7 +56,7 @@ void Colony::Update(const TimeStep& time)
 			break;
 
 		case ProductionState::WaitingForResources:
-			if (bpair.second.citizensEmployed == 0)
+			if (bpair->second.citizensEmployed.empty())
 				break;
 
 			for (size_t i = 0; i < production.waitingInputs.size(); ++i)
@@ -86,7 +72,7 @@ void Colony::Update(const TimeStep& time)
 			}
 			if (production.waitingInputs.size() == 0)
 			{
-				production.start = time.total;
+				production.start = time.now;
 				production.state = ProductionState::Producing;
 			}
 			break;
@@ -94,46 +80,31 @@ void Colony::Update(const TimeStep& time)
 		case ProductionState::Producing:
 			// already producing, stop if citizens removed?
 
-			if (time.total >= production.start + productionDef->duration)
+			if (time.now >= production.start + productionDef->duration)
 			{
 				for (Resource resource : productionDef->outputs)
 				{
 					resource.quantity = CalculateScale(
 						productionDef->scaleUpMethod, 
-						bpair.second.citizensEmployed, resource.quantity);
+						(int)bpair->second.citizensEmployed.size(), resource.quantity);
 					ResourceStore::Default.Deposit(resource);
 				}
+
+				for (auto citizenId : bpair->second.citizensEmployed)
+				{
+					auto citizen(Z::TryGet(citizenId));
+					if (!citizen)
+						continue;
+
+					++citizen->happiness;
+				}
+
 				++production.generation;
 				production.state = ProductionState::NotStarted;
+
+				// todo: increase citizens' proficiency
 			}
 			break;
-		}
-	}
-}
-
-#include <iostream>
-void Colony::PrintBuildings() const
-{
-	for (const auto& bpair : m_allBuildings)
-	{
-		std::cout << "Building (ID " << bpair.first << "): ";
-			
-		const auto buildingDef(BuildingDef::TryGet(bpair.second.building));
-		if (!buildingDef)
-		{
-			std::cout << "[UNKNOWN]\n";
-			continue;
-		}
-
-		std::cout << buildingDef->name << "\n";
-
-		auto& production(bpair.second.production);
-		const auto& productionDef(ProductionDef::TryGet(production.production));
-		if (productionDef)
-		{
-			std::cout << "\tProduction: " << productionDef->name << "\n";
-			std::cout << "\t\tGeneration: " << production.generation << "\n";
-			std::cout << "\t\tState: " << (int)production.state << "\n";
 		}
 	}
 }

@@ -4,7 +4,7 @@
 #include <unordered_map>
 
 // Manages resources for the colony
-class ResourceStore
+class ResourceStore : public ISystem
 {
 public:
 	static ResourceStore Default; // todo: not this
@@ -15,8 +15,13 @@ public:
 	void Deposit(const Resource& resource);
 	int TryWithdraw(const Resource& resource, bool allowPartial);
 
-	void PrintStores() const;
-
+	void Update(const TimeStep& time);
 private:
-	std::unordered_map<ResourceDef::Id, Resource> m_resources; // table of max values?
+	// todo: move these to Z
+	std::unordered_map<ResourceDef::Id, Resource> m_resources;
+	std::unordered_map<ResourceDef::Id, ptrdiff_t> m_deltas;
+
+	friend std::ostream& operator <<(std::ostream&, const ResourceStore&);
 };
+
+extern std::ostream& operator <<(std::ostream&, const ResourceStore&);

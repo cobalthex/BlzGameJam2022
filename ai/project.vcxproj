@@ -148,6 +148,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Colony.cc" />
+    <ClCompile Include="Z.cc" />
+    <ClInclude Include="Z.hh" />
     <ClCompile Include="HiveMind.cc" />
     <ClCompile Include="main.cc" />
     <ClCompile Include="ResourceStore.cc" />

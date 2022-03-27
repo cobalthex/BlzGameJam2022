@@ -16,16 +16,5 @@ public:
 
 	Building::Id Provision(BuildingDef::Id buildingDefId);
 
-	void Remove(Building::Id buildingId);
-
 	virtual void Update(const TimeStep& time) override;
-
-	void PrintBuildings() const;
-
-private:
-	Building::Id Add(Building building);
-
-private:
-	std::unordered_map<Building::Id, Building> m_allBuildings;
-	Building::Id m_nextBuildingId{ 0 };
 };

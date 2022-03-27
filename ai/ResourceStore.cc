@@ -1,4 +1,5 @@
 #include "ResourceStore.hh"
+#include <iostream>
 
 ResourceStore ResourceStore::Default{};
 
@@ -8,6 +9,7 @@ void ResourceStore::Deposit(const Resource& resource)
 		return;
 
 	m_resources[resource.resource].quantity += resource.quantity;
+	m_deltas[resource.resource] += resource.quantity;
 }
 
 int ResourceStore::TryWithdraw(const Resource& resource, bool allowPartial)
@@ -21,16 +23,26 @@ int ResourceStore::TryWithdraw(const Resource& resource, bool allowPartial)
 
 	const auto quantity(std::min(resource.quantity, found->second.quantity));
 	found->second.quantity -= quantity;
+
+	m_deltas[resource.resource] -= quantity;
+
 	return quantity;
 }
 
-#include <iostream>
-void ResourceStore::PrintStores() const
+void ResourceStore::Update(const TimeStep& time)
 {
-	for (const auto& store : m_resources)
+	m_deltas.clear();
+}
+
+std::ostream& operator<<(std::ostream& ostream, const ResourceStore& rs)
+{
+	ostream << "Resources:\n";
+	for (const auto& store : rs.m_resources)
 	{
 		const auto& resource(ResourceDef::Get(store.first));
-		std::cout << resource.name << ": " << store.second.quantity
+		ostream << "\t" << resource.name << ": " << store.second.quantity
 			<< " -- " << resource.description << "\n";
 	}
+
+	return ostream;
 }
