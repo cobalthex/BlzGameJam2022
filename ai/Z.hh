@@ -34,3 +34,24 @@ namespace Z
 
 	std::ostream& State(std::ostream& ostream);
 };
+
+/* some design stuff
+
+citizens are assigned to the building most in demand
+
+priority determined by:
+	- any resource that has zero inventory
+	- any resource that is required but overconsumed
+
+--
+
+citizens will be removed from their job if
+	- high positive production rate
+
+
+buildings are allocated by
+	- research area
+	- resource type unfulfilled
+	- resource in high demand
+
+*/

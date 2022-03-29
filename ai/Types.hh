@@ -82,7 +82,7 @@ enum class Discipline
 	Mining,
 	HeavyIndustry,
 	Retail,
-
+	Government,
 };
 
 struct Citizen : public IIdent<Citizen>

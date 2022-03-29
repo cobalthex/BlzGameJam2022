@@ -34,7 +34,8 @@ private:
 private:
 	std::unordered_map<Discipline, std::priority_queue<Citizen::Id, std::vector<Citizen::Id>, EmployeePriorityComparer>> m_joblessCitizens;
 
-	// citizens to buildings mapping
+	// hacky workaround for circular references
+	std::unordered_map<Citizen::Id, Building::Id> m_citizensToBuildings;
 };
 
 // some design shit

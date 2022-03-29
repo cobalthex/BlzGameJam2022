@@ -4,6 +4,35 @@
 
 Colony Colony::Default{};
 
+Colony::Colony()
+{
+	Z::OnAddCitizen.Add(this, &OnAddCitizen);
+	Z::OnAddBuilding.Add(this, &OnAddBuilding);
+
+	Z::OnRemoveCitizen.Add(this, &OnRemoveCitizen);
+	Z::OnRemoveBuilding.Add(this, &OnRemoveBuilding);
+}
+
+Colony::~Colony()
+{
+	Z::OnAddCitizen.Remove(this, &OnAddCitizen);
+	Z::OnAddBuilding.Remove(this, &OnAddBuilding);
+}
+
+void Colony::OnAddCitizen(Citizen& citizen)
+{
+}
+void Colony::OnAddBuilding(Building& building)
+{
+}
+
+void Colony::OnRemoveCitizen(Citizen& citizen)
+{
+}
+void Colony::OnRemoveBuilding(Building& building)
+{
+}
+
 Building::Id Colony::Provision(BuildingDef::Id buildingDefId)
 {
 	const auto& buildingDef(BuildingDef::Get(buildingDefId));
