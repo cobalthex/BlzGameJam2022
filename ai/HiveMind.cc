@@ -3,24 +3,89 @@
 #include "Colony.hh"
 #include "Z.hh"
 
+bool EmployeePriorityComparer::operator()(Citizen::Id a, Citizen::Id b)
+{
+	const auto hydratedA(Z::TryGet(a));
+	if (!hydratedA)
+		return true;
+	const auto hydratedB(Z::TryGet(b));
+	if (!hydratedB)
+		return false;
+
+	return hydratedA->proficiency > hydratedB->proficiency;
+}
+
 HiveMind HiveMind::Default{};
 
-Citizen::Id HiveMind::CreateCitizen()
+HiveMind::HiveMind()
 {
-	const auto citizenId(Z::Add(Citizen()));
-	m_joblessCitizens.insert(std::pair(Discipline::Unknown, citizenId));
-	return citizenId;
+	Z::OnAddCitizen.Add(this, &HiveMind::OnAddCitizen);
+	Z::OnAddBuilding.Add(this, &HiveMind::OnAddBuilding);
+
+	Z::OnRemoveCitizen.Add(this, &HiveMind::OnRemoveCitizen);
+	Z::OnRemoveBuilding.Add(this, &HiveMind::OnRemoveBuilding);
 }
 
-void HiveMind::RemoveCitizen(Citizen::Id citizenId)
+HiveMind::~HiveMind()
 {
-	const auto citizen(Z::TryGet(citizenId));
-	if (!citizen) return;
-
-	// TODO: erase from jobless, remove from job
+	Z::OnAddCitizen.Remove(this, &HiveMind::OnAddCitizen);
+	Z::OnAddBuilding.Remove(this, &HiveMind::OnAddBuilding);
 }
 
-void HiveMind::AssignToBuilding(Duration now, Citizen::Id citizenId, Building::Id buildingId)
+void HiveMind::OnAddCitizen(Citizen& citizen)
+{
+	m_joblessCitizens[citizen.lastDiscipline].push(citizen);
+}
+void HiveMind::OnAddBuilding(Building& building)
+{
+	const auto def(ProductionDef::TryGet(building.production.production));
+	if (def)
+	{
+		const auto matchedDiscipline(m_joblessCitizens.find(def->discipline));
+		// TODO
+	}
+
+	// employ jobless citizens
+	for (const auto& citizens : m_joblessCitizens)
+	{
+		// employ up to (delta)
+		
+	}
+}
+
+void HiveMind::OnRemoveCitizen(Citizen& citizen)
+{
+	m_joblessCitizens.erase(citizen.lastDiscipline);
+
+	// remove the citizen from their job
+	// TODO
+	/*auto building(Z::TryGet(citizen.occupation));
+	if (building)
+	{
+		const auto foundEmployee(std::find(building->citizensEmployed.begin(), building->citizensEmployed.end(), citizen.id));
+		if (foundEmployee != building->citizensEmployed.end())
+			building->citizensEmployed.erase(foundEmployee);
+	}*/
+}
+void HiveMind::OnRemoveBuilding(Building& building)
+{
+	for (const auto citizenId : building.citizensEmployed)
+	{
+		auto citizen(Z::TryGet(citizenId));
+		if (!citizen)
+			continue;
+
+		//m_joblessCitizens.emplace(citizen->lastDiscipline, citizen);
+		// todo: remove citizen's occupation
+	}
+}
+
+bool HiveMind::GetEmployeePriority(Citizen::Id a, Citizen::Id b)
+{
+	return false;
+}
+
+void HiveMind::Employ(Duration now, Citizen::Id citizenId, Building::Id buildingId)
 {
 	auto& citizen(Z::Get(citizenId)); // todo: once private take in citizen ref?
 	auto& building(Z::Get(buildingId)); // do this elsewhere?
@@ -33,6 +98,7 @@ void HiveMind::AssignToBuilding(Duration now, Citizen::Id citizenId, Building::I
 	}
 
 	building.citizensEmployed.push_back(citizen);
+	//citizen.occupation = building; // TODO
 	citizen.happiness += 1; // some value here?
 }
 

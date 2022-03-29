@@ -21,22 +21,27 @@ struct IIdent
 template <typename TDef>
 struct IDef : public IIdent<TDef>
 {
+	// Use with care
 	static TDef& Get(IIdent<TDef>::Id id)
 	{
+		if (id == IIdent<TDef>::Id::None)
+			throw "ID out of range";
 		return s_definitions[static_cast<size_t>(id)];
 	}
+
+	static const TDef* TryGet(IIdent<TDef>::Id id)
+	{
+		if (id != IIdent<TDef>::Id::None && s_definitions.size() > (size_t)id)
+			return &s_definitions[static_cast<size_t>(id)];
+		return nullptr;
+	}
+
 	static IIdent<TDef>::Id Add(TDef def)
 	{
 		const auto nextId(static_cast<IIdent<TDef>::Id>(s_definitions.size()));
 		def.id = nextId;
 		s_definitions.push_back(def);
 		return def.id;
-	}
-	static const TDef* TryGet(IIdent<TDef>::Id id)
-	{
-		if (s_definitions.size() > static_cast<size_t>(id))
-			return &s_definitions[static_cast<size_t>(id)];
-		return nullptr;
 	}
 
 private:
@@ -162,7 +167,6 @@ struct Building : public IIdent<Building>
 
 	Production production;
 	std::vector<Citizen::Id> citizensEmployed;
-	// todo: store geo coords
 };
 
 

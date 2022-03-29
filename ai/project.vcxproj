@@ -141,6 +141,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Colony.hh" />
+    <ClInclude Include="Event.hh" />
     <ClInclude Include="HiveMind.hh" />
     <ClInclude Include="ResourceStore.hh" />
     <ClInclude Include="Systems.hh" />
@@ -149,6 +150,7 @@
   <ItemGroup>
     <ClCompile Include="Colony.cc" />
     <ClCompile Include="Z.cc" />
+    <ClInclude Include="Utils.hh" />
     <ClInclude Include="Z.hh" />
     <ClCompile Include="HiveMind.cc" />
     <ClCompile Include="main.cc" />

@@ -17,4 +17,6 @@ public:
 	Building::Id Provision(BuildingDef::Id buildingDefId);
 
 	virtual void Update(const TimeStep& time) override;
+
+private:
 };

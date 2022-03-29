@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <iostream>
 
-namespace
+namespace Z
 {
 	std::unordered_map<ResourceDef::Id, Resource> resources;
 	std::unordered_map<ResourceDef::Id, ptrdiff_t> resourceDeltas;
@@ -13,10 +13,13 @@ namespace
 
 	Building::Id m_nextBuildingId;
 	Citizen::Id m_nextCitizenId;
-};
 
-namespace Z
-{
+	Event<Citizen&> OnAddCitizen;
+	Event<Building&> OnAddBuilding;
+
+	Event<Citizen&> OnRemoveCitizen;
+	Event<Building&> OnRemoveBuilding;
+
 	void Tick()
 	{
 		resourceDeltas.clear();
@@ -26,6 +29,7 @@ namespace Z
 	{
 		citizen.id = static_cast<Citizen::Id>(++(size_t&)(m_nextCitizenId));
 		allCitizens[citizen.id] = citizen;
+		OnAddCitizen.Invoke(citizen);
 		return citizen.id;
 	}
 	Building::Id Add(Building building)
@@ -33,6 +37,28 @@ namespace Z
 		building.id = static_cast<Building::Id>(++(size_t&)(m_nextBuildingId));
 		allBuildings[building.id] = building;
 		return building.id;
+	}
+
+	bool Remove(Citizen::Id citizenId)
+	{
+		const auto found(allCitizens.find(citizenId));
+		if (found == allCitizens.end())
+			return false;
+
+		OnRemoveCitizen.Invoke(found->second);
+		allCitizens.erase(found);
+		return true;
+	}
+
+	bool Remove(Building::Id buildingId)
+	{
+		const auto found(allBuildings.find(buildingId));
+		if (found == allBuildings.end())
+			return false;
+
+		OnRemoveBuilding.Invoke(found->second);
+		allBuildings.erase(found);
+		return true;
 	}
 
 	Citizen* const TryGet(Citizen::Id citizenId)

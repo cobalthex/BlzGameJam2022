@@ -2,6 +2,12 @@
 
 #include "Systems.hh"
 #include <unordered_map>
+#include <queue>
+
+struct EmployeePriorityComparer
+{
+	bool operator()(Citizen::Id a, Citizen::Id b);
+};
 
 // Manages citizens
 class HiveMind : public ISystem
@@ -9,22 +15,27 @@ class HiveMind : public ISystem
 public:
 	static HiveMind Default; // todo: not this
 
-	HiveMind() = default;
-	virtual ~HiveMind() = default;
+	HiveMind();
+	virtual ~HiveMind();
 	HiveMind(const HiveMind&) = delete;
 	HiveMind operator=(const HiveMind&) = delete;
 
 	virtual void Update(const TimeStep& time) override;
 
-	Citizen::Id CreateCitizen();
-	void RemoveCitizen(Citizen::Id citizenId);
-
-	void AssignToBuilding(Duration now, Citizen::Id citizen, Building::Id building); // make private
+	void Employ(Duration now, Citizen::Id citizen, Building::Id building); // make private
 
 private:
-	std::unordered_multimap<Discipline, Citizen::Id> m_joblessCitizens;
-};
+	void OnAddCitizen(Citizen& citizen);
+	void OnAddBuilding(Building& building);
 
+	void OnRemoveCitizen(Citizen& citizen);
+	void OnRemoveBuilding(Building& building);
+
+private:
+	std::unordered_map<Discipline, std::priority_queue<Citizen::Id, std::vector<Citizen::Id>, EmployeePriorityComparer>> m_joblessCitizens;
+
+	// citizens to buildings mapping
+};
 
 // some design shit
 

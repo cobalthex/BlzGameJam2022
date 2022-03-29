@@ -21,6 +21,8 @@ int ResourceStore::TryWithdraw(const Resource& resource, bool allowPartial)
 	if (found == m_resources.end() || (!allowPartial && found->second.quantity < resource.quantity))
 		return 0;
 
+	// todo: add to deltas even if none left
+
 	const auto quantity(std::min(resource.quantity, found->second.quantity));
 	found->second.quantity -= quantity;
 

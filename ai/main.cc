@@ -106,14 +106,14 @@ int main(int argc, char* argv[])
 	}));
 	const auto steelMill0(Colony::Default.Provision(steelMill));
 
-	auto citizen(HiveMind::Default.CreateCitizen());
-	HiveMind::Default.AssignToBuilding(time.now, citizen, ironMine0);
+	auto citizen(Z::Add(Citizen{}));
+	HiveMind::Default.Employ(time.now, citizen, ironMine0);
 
-	citizen = HiveMind::Default.CreateCitizen();
-	HiveMind::Default.AssignToBuilding(time.now, citizen, coalMine0);
+	citizen = Z::Add(Citizen{});
+	HiveMind::Default.Employ(time.now, citizen, coalMine0);
 
-	citizen = HiveMind::Default.CreateCitizen();
-	HiveMind::Default.AssignToBuilding(time.now, citizen, steelMill0);
+	citizen = Z::Add(Citizen{});
+	HiveMind::Default.Employ(time.now, citizen, steelMill0);
 
 	while (true)
 	{
@@ -135,9 +135,13 @@ int main(int argc, char* argv[])
 			std::cout << ResourceStore::Default << "\n" << Z::State << "\n";
 			break;
 
+		case '3':
+			Z::Add(Citizen{});
+			break;
+
 		case 'q':
 		case 'Q':
-			break;
+			return 0;
 
 		default:
 			std::cout << key;
@@ -155,6 +159,7 @@ void PrintMenu()
 		"\n--------"
 		"\n1: Tick"
 		"\n2: State"
+		"\n3: Employ citizen"
 		"\nQ: Quit"
 		"\n";
 }
