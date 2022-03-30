@@ -9,11 +9,14 @@ namespace Z
 {
 	void Tick(); // call at the beginning of every frame
 
+	void Deposit(Resource resource);
+	int TryWithdraw(const Resource& resource, bool allowPartial);
+
 	Citizen::Id Add(Citizen citizen);
-	Building::Id Add(Building building);
+	Building::Id Add(Building definition);
 
 	bool Remove(Citizen::Id citizen);
-	bool Remove(Building::Id building);
+	bool Remove(Building::Id definition);
 
 	Citizen* const TryGet(Citizen::Id citizenId);
 	Building* const TryGet(Building::Id buildingId);
@@ -23,6 +26,7 @@ namespace Z
 
 	Iterator<std::unordered_map<Citizen::Id, Citizen>> AllCitizens();
 	Iterator<std::unordered_map<Building::Id, Building>> AllBuildings();
+	Iterator<std::unordered_map<ResourceDef::Id, Resource>> AllResources();
 
 	// called just after addition
 	extern Event<Citizen&> OnAddCitizen;

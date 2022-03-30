@@ -143,18 +143,18 @@
     <ClInclude Include="Colony.hh" />
     <ClInclude Include="Event.hh" />
     <ClInclude Include="HiveMind.hh" />
-    <ClInclude Include="ResourceStore.hh" />
     <ClInclude Include="Systems.hh" />
+    <ClInclude Include="thirdparty\Json.hpp" />
     <ClInclude Include="Types.hh" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Colony.cc" />
+    <ClCompile Include="Types.cc" />
     <ClCompile Include="Z.cc" />
     <ClInclude Include="Utils.hh" />
     <ClInclude Include="Z.hh" />
     <ClCompile Include="HiveMind.cc" />
     <ClCompile Include="main.cc" />
-    <ClCompile Include="ResourceStore.cc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

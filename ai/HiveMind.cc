@@ -1,5 +1,4 @@
 #include "HiveMind.hh"
-#include "ResourceStore.hh"
 #include "Colony.hh"
 #include "Z.hh"
 
@@ -19,17 +18,20 @@ HiveMind HiveMind::Default{};
 
 HiveMind::HiveMind()
 {
-	Z::OnAddCitizen.Add(this, &OnAddCitizen);
-	Z::OnAddBuilding.Add(this, &OnAddBuilding);
+	Z::OnAddCitizen.Add(this, &HiveMind::OnAddCitizen);
+	Z::OnAddBuilding.Add(this, &HiveMind::OnAddBuilding);
 
-	Z::OnRemoveCitizen.Add(this, &OnRemoveCitizen);
-	Z::OnRemoveBuilding.Add(this, &OnRemoveBuilding);
+	Z::OnRemoveCitizen.Add(this, &HiveMind::OnRemoveCitizen);
+	Z::OnRemoveBuilding.Add(this, &HiveMind::OnRemoveBuilding);
 }
 
 HiveMind::~HiveMind()
 {
-	Z::OnAddCitizen.Remove(this, &OnAddCitizen);
-	Z::OnAddBuilding.Remove(this, &OnAddBuilding);
+	Z::OnAddCitizen.Remove(this, &HiveMind::OnAddCitizen);
+	Z::OnAddBuilding.Remove(this, &HiveMind::OnAddBuilding);
+
+	Z::OnRemoveCitizen.Remove(this, &HiveMind::OnRemoveCitizen);
+	Z::OnRemoveBuilding.Remove(this, &HiveMind::OnRemoveBuilding);
 }
 
 void HiveMind::OnAddCitizen(Citizen& citizen)
@@ -38,7 +40,7 @@ void HiveMind::OnAddCitizen(Citizen& citizen)
 }
 void HiveMind::OnAddBuilding(Building& building)
 {
-	const auto def(ProductionDef::TryGet(building.production.production));
+	const auto def(ProductionDef::TryGet(building.production.definition));
 	if (def)
 	{
 		const auto matchedDiscipline(m_joblessCitizens.find(def->discipline));
@@ -61,12 +63,12 @@ void HiveMind::OnRemoveCitizen(Citizen& citizen)
 	const auto found(m_citizensToBuildings.find(citizen));
 	if (found != m_citizensToBuildings.end())
 	{
-		const auto building(Z::TryGet(found->second));
-		if (building)
+		const auto definition(Z::TryGet(found->second));
+		if (definition)
 		{
-			const auto foundEmployee(std::find(building->citizensEmployed.begin(), building->citizensEmployed.end(), citizen.id));
-			if (foundEmployee != building->citizensEmployed.end())
-				building->citizensEmployed.erase(foundEmployee);
+			const auto foundEmployee(std::find(definition->citizensEmployed.begin(), definition->citizensEmployed.end(), citizen.id));
+			if (foundEmployee != definition->citizensEmployed.end())
+				definition->citizensEmployed.erase(foundEmployee);
 		}
 
 		m_citizensToBuildings.erase(found);
@@ -88,7 +90,7 @@ void HiveMind::Employ(Duration now, Citizen::Id citizenId, Building::Id building
 {
 	auto& citizen(Z::Get(citizenId)); // todo: once private take in citizen ref?
 	auto& building(Z::Get(buildingId)); // do this elsewhere?
-	const auto& buildingDef(BuildingDef::Get(building.building));
+	const auto& buildingDef(BuildingDef::Get(building.definition));
 
 	if (citizen.lastDiscipline != buildingDef.production.discipline)
 	{
