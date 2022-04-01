@@ -17,4 +17,7 @@
     <ClCompile Include="Z.cc" />
     <ClCompile Include="Types.cc" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="data\definitions.json" />
+  </ItemGroup>
 </Project>

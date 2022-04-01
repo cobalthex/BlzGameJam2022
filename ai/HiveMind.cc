@@ -91,10 +91,11 @@ void HiveMind::Employ(Duration now, Citizen::Id citizenId, Building::Id building
 	auto& citizen(Z::Get(citizenId)); // todo: once private take in citizen ref?
 	auto& building(Z::Get(buildingId)); // do this elsewhere?
 	const auto& buildingDef(BuildingDef::Get(building.definition));
+	const auto& productionDef(ProductionDef::Get(buildingDef.production));
 
-	if (citizen.lastDiscipline != buildingDef.production.discipline)
+	if (citizen.lastDiscipline != productionDef.discipline)
 	{
-		citizen.lastDiscipline = buildingDef.production.discipline;
+		citizen.lastDiscipline = productionDef.discipline;
 		citizen.proficiency = 0;
 	}
 

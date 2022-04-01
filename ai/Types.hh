@@ -6,6 +6,28 @@
 #include <chrono>
 
 using Duration = std::chrono::nanoseconds;
+namespace std::chrono
+{
+	void from_json(const nlohmann::json&, Duration&);
+}
+
+template <typename T>
+struct Iterator
+{
+	Iterator(T& ty) : begin(ty.begin()), end(ty.end()) { }
+
+	T::iterator begin;
+	T::iterator end;
+};
+
+template <typename T>
+struct CIterator
+{
+	CIterator(const T& ty) : begin(ty.cbegin()), end(ty.cend()) { }
+
+	T::const_iterator begin;
+	T::const_iterator end;
+};
 
 template <typename TBase>
 struct IIdent
@@ -22,8 +44,6 @@ struct IIdent
 template <typename TDef>
 struct IDef : public IIdent<TDef>
 {
-	std::string name;
-
 	// Use with care
 	static TDef& Get(IIdent<TDef>::Id id)
 	{
@@ -39,43 +59,69 @@ struct IDef : public IIdent<TDef>
 		return nullptr;
 	}
 
+	static IIdent<TDef>::Id TryGetId(const std::string& name)
+	{
+		const auto& found(s_definitionsByName.find(name));
+		if (found != s_definitionsByName.end())
+			return found->second;
+		return IIdent<TDef>::Id::None;
+	}
+
 	static IIdent<TDef>::Id Add(TDef def)
 	{
 		const auto nextId(static_cast<IIdent<TDef>::Id>(s_definitions.size()));
 		def.id = nextId;
 		s_definitions.push_back(def);
+		s_definitionsByName[def.name] = def.id;
 		return def.id;
+	}
+
+	static std::ostream& Definitions(std::ostream& os)
+	{
+		for (size_t i = 1; i < s_definitions.size(); ++i)
+		{
+			os << s_definitions[i] << "\n";
+		}
+		return os;
+	}
+
+	static size_t Count()
+	{
+		return s_definitions.size() - 1;
 	}
 
 private:
 	static std::vector<TDef> s_definitions;
+	static std::unordered_map<std::string, typename IIdent<TDef>::Id> s_definitionsByName;
 };
 
 template <typename TDef>
-std::vector<TDef> IDef<TDef>::s_definitions(1); // fill 0 with empty
+inline std::vector<TDef> IDef<TDef>::s_definitions(1); // fill 0 with empty
+
+template <typename TDef>
+inline std::unordered_map<std::string, typename IIdent<TDef>::Id> IDef<TDef>::s_definitionsByName;
+
 
 struct ResourceDef : public IDef<ResourceDef>
 {
 	std::string name;
 	std::string description;
 };
+extern std::ostream& operator <<(std::ostream&, const ResourceDef&);
+extern void to_json(nlohmann::json&, const ResourceDef&);
+extern void from_json(const nlohmann::json&, ResourceDef&);
 
 struct Resource
 {
 	ResourceDef::Id definition;
 	int quantity;
 };
-
-enum class ProductionType // needed?
-{
-	Resources, // default resource consume/produce
-	Spawner, // outputs are citizens
-
-	// ---
-	Unknown,
-};
+extern std::ostream& operator <<(std::ostream&, const Resource&);
+extern void to_json(nlohmann::json&, const Resource&);
+extern void from_json(const nlohmann::json&, Resource&);
 
 // rough groupings for job types
+// todo: make data driven
 enum class Discipline
 {
 	Unknown,
@@ -112,25 +158,27 @@ struct ProductionScale
 	ProductionScaleMethod method;
 	float coefficient = 1;
 };
+extern std::ostream& operator <<(std::ostream&, const ProductionScale&);
+extern void to_json(nlohmann::json&, const ProductionScale&);
+extern void from_json(const nlohmann::json&, ProductionScale&);
 
 struct ProductionDef : public IDef<ProductionDef>
 {
-	ProductionDef() = default;
-	ProductionDef(const nlohmann::json&)
-
 	std::string name;
-	ProductionType type;
 	Discipline discipline;
 	//todo: rethink these
 	ProductionScale resourceScalar;
 	ProductionScale timeScalar;
 
 	Duration duration;
-	int progressPerEmployeePerTick; // progress per employee per nanosecond (units of Duration)
+	int progressPerEmployeePerTick = 1; // todo: rethink this
 
 	std::vector<Resource> inputs;
 	std::vector<Resource> outputs;
 };
+extern std::ostream& operator <<(std::ostream&, const ProductionDef&);
+extern void to_json(nlohmann::json&, const ProductionDef&);
+extern void from_json(const nlohmann::json&, ProductionDef&);
 
 enum class ProductionState
 {
@@ -149,6 +197,7 @@ struct Production
 	std::vector<Resource> waitingInputs;
 };
 
+// todo: data defined
 enum class ZoningRestriction
 {
 	None,
@@ -172,8 +221,11 @@ struct BuildingDef : public IDef<BuildingDef>
 	std::string name;
 	ZoningRestriction zone;
 
-	ProductionDef production;
+	ProductionDef::Id production;
 };
+extern std::ostream& operator <<(std::ostream&, const BuildingDef&);
+extern void to_json(nlohmann::json&, const BuildingDef&);
+extern void from_json(const nlohmann::json&, BuildingDef&);
 
 struct Building : public IIdent<Building>
 {
@@ -185,27 +237,8 @@ struct Building : public IIdent<Building>
 	std::vector<Citizen::Id> citizensEmployed;
 };
 
-
 struct TimeStep
 {
 	Duration delta;
 	Duration now; // since game/sim start
-};
-
-template <typename T>
-struct Iterator
-{
-	Iterator(T& ty) : begin(ty.begin()), end(ty.end()) { }
-
-	T::iterator begin;
-	T::iterator end;
-};
-
-template <typename T>
-struct CIterator
-{
-	CIterator(const T& ty) : begin(ty.cbegin()), end(ty.cend()) { }
-
-	T::const_iterator begin;
-	T::const_iterator end;
 };

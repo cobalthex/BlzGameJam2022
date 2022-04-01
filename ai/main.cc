@@ -1,9 +1,12 @@
+#include "Utils.hh"
 #include "Types.hh"
 #include "HiveMind.hh"
 #include "Colony.hh"
 #include "Z.hh"
 
 #include <iostream>
+#include <fstream>
+#include <random>
 
 // TODO: Precompiled header
 
@@ -17,126 +20,39 @@ int main(int argc, char* argv[])
 		.now = Duration(0),
 	};
 
-	const ResourceDef::Id coal(ResourceDef::Add(
+	try
 	{
-		.name = "Coal",
-		.description = "Magic black rocks",
-	}));
-	const ResourceDef::Id iron(ResourceDef::Add(
-	{
-		.name = "Iron",
-		.description = "Magic brown rocks",
-	}));
-	const ResourceDef::Id steel(ResourceDef::Add(
-	{
-		.name = "Steel",
-		.description = "Stronk",
-	}));
+		std::ifstream fin("data/definitions.json");
+		nlohmann::json json(nlohmann::json::parse(fin, nullptr, true /* allow exceptions */, true /* ignore comments */));
 
-	const ProductionDef::Id mineIron(ProductionDef::Add(
+		for (const auto& rd : json["resources"])
+		{
+			ResourceDef resDef;
+			rd.get_to(resDef);
+			ResourceDef::Add(resDef);
+		}
+		for (const auto& pd : json["productions"])
+		{
+			ProductionDef prodDef;
+			pd.get_to(prodDef);
+			ProductionDef::Add(prodDef);
+		}
+		for (const auto& bd : json["buildings"])
+		{
+			BuildingDef bldgDef;
+			bd.get_to(bldgDef);
+			BuildingDef::Add(bldgDef);
+		}
+	}
+	catch (const std::exception& e)
 	{
-		.name = "Mine iron",
-		.discipline = Discipline::Mining,
-		.resourceScalar {
-			.method = ProductionScaleMethod::Linear,
-			.coefficient = 1
-		},
-		.timeScalar {
-			.method = ProductionScaleMethod::Constant,
-			.coefficient = 1
-		},
-		.duration = Duration(1),
-		.outputs {
-			Resource {
-				.definition = iron,
-				.quantity = 1,
-			},
-		},
-	}));
-	const ProductionDef::Id mineCoal(ProductionDef::Add(
-	{
-		.name = "Mine coal",
-		.discipline = Discipline::Mining,
-		.resourceScalar {
-			.method = ProductionScaleMethod::Linear,
-			.coefficient = 1
-		},
-		.timeScalar {
-			.method = ProductionScaleMethod::Constant,
-			.coefficient = 1
-		},
-		.duration = Duration(1),
-		.outputs {
-			Resource {
-				.definition = coal,
-				.quantity = 1,
-			},
-		},
-	}));
+		std::cerr << "!!! Failed to parse definiations.json\n" << e.what() << std::endl;
+		return 1;
+	}
 
-	const ProductionDef::Id makeSteel(ProductionDef::Add(
-	{
-		.name = "Make steel",
-		.discipline = Discipline::HeavyIndustry,
-		.resourceScalar {
-			.method = ProductionScaleMethod::Linear,
-			.coefficient = 1
-		},
-		.timeScalar {
-			.method = ProductionScaleMethod::Constant,
-			.coefficient = 1
-		},
-		.duration = Duration(2),
-		.inputs {
-			Resource {
-				.definition = coal,
-				.quantity = 2,
-			},
-			Resource{
-				.definition = iron,
-				.quantity = 1,
-			},
-		},
-		.outputs {
-			Resource {
-				.definition = steel,
-				.quantity = 1,
-			},
-		},
-	}));
+	// TODO
 
-	BuildingDef::Id ironMine(BuildingDef::Add(
-	{
-		.name = "Iron Mine",
-		.zone = ZoningRestriction::Industrial,
-		.production = mineIron,
-	}));
- 	const auto ironMine0(Colony::Default.Provision(ironMine));
-
-	BuildingDef::Id coalMine(BuildingDef::Add(
-	{
-		.name = "Coal Mine",
-		.zone = ZoningRestriction::Industrial,
-		.production = mineCoal,
-	}));
-	const auto coalMine0(Colony::Default.Provision(coalMine));
-
-	BuildingDef::Id steelMill(BuildingDef::Add(
-	{
-		.name = "Steel Mill",
-		.zone = ZoningRestriction::Industrial,
-		.production = makeSteel,
-	}));
-	const auto steelMill0(Colony::Default.Provision(steelMill));
-
-	auto citizen(Z::Add(Citizen{}));
-	HiveMind::Default.Employ(time.now, citizen, ironMine0);
-
-	citizen = Z::Add(Citizen{});
-	HiveMind::Default.Employ(time.now, citizen, coalMine0);
-
-	citizen = Z::Add(Citizen{});
-	HiveMind::Default.Employ(time.now, citizen, steelMill0);
+	std::random_device random;
 
 	while (true)
 	{
@@ -158,7 +74,22 @@ int main(int argc, char* argv[])
 			break;
 
 		case '3':
+			std::cout << "Resources:\n" << ResourceDef::Definitions << "\n";
+			std::cout << "Productions:\n" << ProductionDef::Definitions << "\n";
+			std::cout << "Buildings:\n" << BuildingDef::Definitions << "\n";
+			break;
+
+		case '4':
 			Z::Add(Citizen{});
+			break;
+
+		case '5':
+			if (BuildingDef::Count() < 1)
+			{
+				std::cout << "No building definitions available";
+				break;
+			}
+			Colony::Default.Provision(BuildingDef::Get(BuildingDef::Id(random() % BuildingDef::Count() + 1)));
 			break;
 
 		case 'q':
@@ -166,7 +97,7 @@ int main(int argc, char* argv[])
 			return 0;
 
 		default:
-			std::cout << key;
+			std::cout << "Unknown key: '" << (char)key << "' (" << key << ")";
 		}
 		std::cout << std::endl;
 	}
@@ -181,7 +112,9 @@ void PrintMenu()
 		"\n--------"
 		"\n1: Tick"
 		"\n2: State"
-		"\n3: Employ citizen"
+		"\n3: Definitions"
+		"\n4: Provision citizen"
+		"\n5: Provision random building"
 		"\nQ: Quit"
 		"\n";
 }

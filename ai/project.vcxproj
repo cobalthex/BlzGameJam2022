@@ -156,6 +156,11 @@
     <ClCompile Include="HiveMind.cc" />
     <ClCompile Include="main.cc" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="data\definitions.json">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

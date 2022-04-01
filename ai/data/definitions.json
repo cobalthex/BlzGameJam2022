@@ -1,0 +1,99 @@
+{
+	"resources": [
+		{
+			"name": "Coal",
+			"description": "Magic black rocks"
+		},
+		{
+			"name": "Iron",
+			"description": "Magic brown rocks"
+		},
+		{
+			"name": "Steel",
+			"description": "Stronk"
+		}
+	],
+
+	"productions": [
+		{
+			"name": "Mine iron",
+			"discipline": 4,
+			"resourceScalar":
+			{
+				"method": 0,
+				"coefficient": 1
+			},
+			"timeScalar":
+			{
+				"method": 1,
+				"coefficient": 1
+			},
+			"duration": "1s",
+			"outputs": [
+				{
+					"definition": "Iron",
+					"quantity": 1
+				}
+			]
+		},
+		{
+			"name": "Mine coal",
+			"discipline": 4,
+			"resourceScalar":
+			{
+				"method": 0,
+				"coefficient": 1
+			},
+			"timeScalar":
+			{
+				"method": 1,
+				"coefficient": 1
+			},
+			"duration": "1s",
+			"outputs": [
+				{
+					"definition": "Coal",
+					"quantity": 1
+				}
+			]
+		},
+		{
+			"name": "Make steel",
+			"discipline": 5,
+			"resourceScalar":
+			{
+				"method": 0,
+				"coefficient": 1
+			},
+			"timeScalar":
+			{
+				"method": 1,
+				"coefficient": 1
+			},
+			"duration": "2s",
+			"inputs": [
+				{
+					"definition": "Coal",
+					"quantity": 2
+				},
+				{
+					"definition": "Iron",
+					"quantity": 1
+				}
+			],
+			"outputs": [
+				{
+					"definition": "Steel",
+					"quantity": 1
+				}
+			]
+		}
+	],
+	"buildings": [
+		{
+			"name": "Steel mill",
+			"zone": 2,
+			"production": "Make steel"
+		}
+	]
+}

@@ -133,7 +133,7 @@ namespace Z
 				<< " -- " << resource.description << "\n";
 		}
 
-		ostream << "Buildings:\n";
+		ostream << "\nBuildings:\n";
 		for (const auto& bpair : allBuildings)
 		{
 			ostream << "\tID " << static_cast<size_t>(bpair.first) << ": ";
@@ -160,13 +160,15 @@ namespace Z
 			}
 		}
 
-		ostream << "Citizens:\n";
+		ostream << "\nCitizens:\n";
 		for (const auto& cpair : allCitizens)
 		{
 			ostream << "\tID " << static_cast<size_t>(cpair.first) << "\n";
 			ostream << "\t\tHunger: " << cpair.second.hunger << "\n";
 			ostream << "\t\tHappiness: " << cpair.second.happiness << "\n";
 		}
+
+		ostream << std::endl;
 
 		return ostream;
 	}
