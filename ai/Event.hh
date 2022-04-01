@@ -25,7 +25,7 @@ public:
 
 		const auto proxy([=](TArgs&&... args) { (owner->*handler)(args...); });
 		const auto id(++m_nextHandlerId);
-		const auto& entry(m_handlers.emplace_back(id, proxy));
+		const auto& entry(m_handlers.emplace_back(id, owner->*handler));
 		m_entryMappings.emplace(key, id);
 	}
 

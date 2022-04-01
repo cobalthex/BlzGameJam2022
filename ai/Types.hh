@@ -1,5 +1,6 @@
 #pragma once
 
+#include "thirdparty/Json.hpp"
 #include <vector>
 #include <string_view>
 #include <chrono>
@@ -15,12 +16,14 @@ struct IIdent
 	};
 
 	Id id{ Id::None };
-	operator Id() const { return id; }
+	operator Id() const { return id; } // TODO: remove
 };
 
 template <typename TDef>
 struct IDef : public IIdent<TDef>
 {
+	std::string name;
+
 	// Use with care
 	static TDef& Get(IIdent<TDef>::Id id)
 	{
@@ -53,13 +56,13 @@ std::vector<TDef> IDef<TDef>::s_definitions(1); // fill 0 with empty
 
 struct ResourceDef : public IDef<ResourceDef>
 {
-	std::string_view name;
-	std::string_view description;
+	std::string name;
+	std::string description;
 };
 
 struct Resource
 {
-	ResourceDef::Id resource;
+	ResourceDef::Id definition;
 	int quantity;
 };
 
@@ -98,20 +101,32 @@ struct Citizen : public IIdent<Citizen>
 	// TODO: goal planning state machine
 };
 
-enum class ProductionScaleUpMethod
+enum class ProductionScaleMethod
 {
 	Linear,
 	Constant,
 };
 
+struct ProductionScale
+{
+	ProductionScaleMethod method;
+	float coefficient = 1;
+};
+
 struct ProductionDef : public IDef<ProductionDef>
 {
-	std::string_view name;
+	ProductionDef() = default;
+	ProductionDef(const nlohmann::json&)
+
+	std::string name;
 	ProductionType type;
 	Discipline discipline;
-	ProductionScaleUpMethod scaleUpMethod;
+	//todo: rethink these
+	ProductionScale resourceScalar;
+	ProductionScale timeScalar;
 
 	Duration duration;
+	int progressPerEmployeePerTick; // progress per employee per nanosecond (units of Duration)
 
 	std::vector<Resource> inputs;
 	std::vector<Resource> outputs;
@@ -121,15 +136,16 @@ enum class ProductionState
 {
 	NotStarted,
 	WaitingForResources,
+	WaitingForEmployees,
 	Producing,
 };
 
 struct Production
 {
-	ProductionDef::Id production;
+	ProductionDef::Id definition;
 	size_t generation;
-	Duration start;
 	ProductionState state;
+	Duration timeRemaining;
 	std::vector<Resource> waitingInputs;
 };
 
@@ -153,7 +169,7 @@ enum class BuildingState
 
 struct BuildingDef : public IDef<BuildingDef>
 {
-	std::string_view name;
+	std::string name;
 	ZoningRestriction zone;
 
 	ProductionDef production;
@@ -161,9 +177,9 @@ struct BuildingDef : public IDef<BuildingDef>
 
 struct Building : public IIdent<Building>
 {
-	BuildingDef::Id building{};
+	BuildingDef::Id definition;
 
-	BuildingState state{};
+	BuildingState state;
 
 	Production production;
 	std::vector<Citizen::Id> citizensEmployed;

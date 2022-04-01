@@ -1,5 +1,4 @@
 #include "Types.hh"
-#include "ResourceStore.hh"
 #include "HiveMind.hh"
 #include "Colony.hh"
 #include "Z.hh"
@@ -14,8 +13,8 @@ int main(int argc, char* argv[])
 {
 	TimeStep time
 	{
-		.delta = std::chrono::milliseconds(1),
-		.now = std::chrono::milliseconds(0),
+		.delta = Duration(1),
+		.now = Duration(0),
 	};
 
 	const ResourceDef::Id coal(ResourceDef::Add(
@@ -38,10 +37,18 @@ int main(int argc, char* argv[])
 	{
 		.name = "Mine iron",
 		.discipline = Discipline::Mining,
-		.duration = std::chrono::milliseconds(1),
+		.resourceScalar {
+			.method = ProductionScaleMethod::Linear,
+			.coefficient = 1
+		},
+		.timeScalar {
+			.method = ProductionScaleMethod::Constant,
+			.coefficient = 1
+		},
+		.duration = Duration(1),
 		.outputs {
 			Resource {
-				.resource = iron,
+				.definition = iron,
 				.quantity = 1,
 			},
 		},
@@ -50,10 +57,18 @@ int main(int argc, char* argv[])
 	{
 		.name = "Mine coal",
 		.discipline = Discipline::Mining,
-		.duration = std::chrono::milliseconds(1),
+		.resourceScalar {
+			.method = ProductionScaleMethod::Linear,
+			.coefficient = 1
+		},
+		.timeScalar {
+			.method = ProductionScaleMethod::Constant,
+			.coefficient = 1
+		},
+		.duration = Duration(1),
 		.outputs {
 			Resource {
-				.resource = coal,
+				.definition = coal,
 				.quantity = 1,
 			},
 		},
@@ -63,20 +78,28 @@ int main(int argc, char* argv[])
 	{
 		.name = "Make steel",
 		.discipline = Discipline::HeavyIndustry,
-		.duration = std::chrono::milliseconds(2),
+		.resourceScalar {
+			.method = ProductionScaleMethod::Linear,
+			.coefficient = 1
+		},
+		.timeScalar {
+			.method = ProductionScaleMethod::Constant,
+			.coefficient = 1
+		},
+		.duration = Duration(2),
 		.inputs {
 			Resource {
-				.resource = coal,
+				.definition = coal,
 				.quantity = 2,
 			},
 			Resource{
-				.resource = iron,
+				.definition = iron,
 				.quantity = 1,
 			},
 		},
 		.outputs {
 			Resource {
-				.resource = steel,
+				.definition = steel,
 				.quantity = 1,
 			},
 		},
@@ -127,12 +150,11 @@ int main(int argc, char* argv[])
 		case '1':
 			Z::Tick();
 
-			ResourceStore::Default.Update(time);
 			Colony::Default.Update(time);
 			HiveMind::Default.Update(time);
 			break;
 		case '2':
-			std::cout << ResourceStore::Default << "\n" << Z::State << "\n";
+			std::cout << Z::State << "\n";
 			break;
 
 		case '3':

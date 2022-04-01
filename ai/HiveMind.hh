@@ -22,14 +22,14 @@ public:
 
 	virtual void Update(const TimeStep& time) override;
 
-	void Employ(Duration now, Citizen::Id citizen, Building::Id building); // make private
+	void Employ(Duration now, Citizen::Id citizen, Building::Id definition); // make private
 
 private:
 	void OnAddCitizen(Citizen& citizen);
-	void OnAddBuilding(Building& building);
+	void OnAddBuilding(Building& definition);
 
 	void OnRemoveCitizen(Citizen& citizen);
-	void OnRemoveBuilding(Building& building);
+	void OnRemoveBuilding(Building& definition);
 
 private:
 	std::unordered_map<Discipline, std::priority_queue<Citizen::Id, std::vector<Citizen::Id>, EmployeePriorityComparer>> m_joblessCitizens;

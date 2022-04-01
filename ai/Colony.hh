@@ -26,5 +26,4 @@ private:
 	void OnRemoveBuilding(Building& building);
 
 private:
-	std::unordered_multimap<ResourceDef::Id, Building::Id> m_buildingsByOutput;
 };

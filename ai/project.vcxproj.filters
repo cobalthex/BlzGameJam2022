@@ -4,17 +4,17 @@
     <ClInclude Include="Types.hh" />
     <ClInclude Include="Systems.hh" />
     <ClInclude Include="HiveMind.hh" />
-    <ClInclude Include="ResourceStore.hh" />
     <ClInclude Include="Colony.hh" />
     <ClInclude Include="Z.hh" />
     <ClInclude Include="Utils.hh" />
     <ClInclude Include="Event.hh" />
+    <ClInclude Include="thirdparty\Json.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cc" />
-    <ClCompile Include="ResourceStore.cc" />
     <ClCompile Include="HiveMind.cc" />
     <ClCompile Include="Colony.cc" />
     <ClCompile Include="Z.cc" />
+    <ClCompile Include="Types.cc" />
   </ItemGroup>
 </Project>

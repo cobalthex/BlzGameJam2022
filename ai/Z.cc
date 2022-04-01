@@ -5,7 +5,7 @@
 
 namespace Z
 {
-	std::unordered_map<ResourceDef::Id, Resource> resources;
+	std::unordered_map<ResourceDef::Id, Resource> allResources;
 	std::unordered_map<ResourceDef::Id, ptrdiff_t> resourceDeltas;
 
 	std::unordered_map<Citizen::Id, Citizen> allCitizens;
@@ -25,6 +25,34 @@ namespace Z
 		resourceDeltas.clear();
 	}
 
+	void Deposit(Resource resource)
+	{
+		if (resource.quantity < 0)
+			return;
+
+		allResources[resource.definition].quantity += resource.quantity;
+		resourceDeltas[resource.definition] += resource.quantity;
+	}
+
+	int TryWithdraw(const Resource& resource, bool allowPartial)
+	{
+		if (resource.quantity < 0)
+			return 0;
+
+		const auto& found(allResources.find(resource.definition));
+		if (found == allResources.end() || (!allowPartial && found->second.quantity < resource.quantity))
+			return 0;
+
+		// todo: add to deltas even if none left
+
+		const auto quantity(std::min(resource.quantity, found->second.quantity));
+		found->second.quantity -= quantity;
+
+		resourceDeltas[resource.definition] -= quantity;
+
+		return quantity;
+	}
+
 	Citizen::Id Add(Citizen citizen)
 	{
 		citizen.id = static_cast<Citizen::Id>(++(size_t&)(m_nextCitizenId));
@@ -32,11 +60,11 @@ namespace Z
 		OnAddCitizen.Invoke(citizen);
 		return citizen.id;
 	}
-	Building::Id Add(Building building)
+	Building::Id Add(Building definition)
 	{
-		building.id = static_cast<Building::Id>(++(size_t&)(m_nextBuildingId));
-		allBuildings[building.id] = building;
-		return building.id;
+		definition.id = static_cast<Building::Id>(++(size_t&)(m_nextBuildingId));
+		allBuildings[definition.id] = definition;
+		return definition.id;
 	}
 
 	bool Remove(Citizen::Id citizenId)
@@ -90,14 +118,27 @@ namespace Z
 		return Iterator(allBuildings);
 	}
 
+	Iterator<std::unordered_map<ResourceDef::Id, Resource>> AllResources()
+	{
+		return Iterator(allResources);
+	}
+
 	std::ostream& State(std::ostream& ostream)
 	{
+		ostream << "Resources:\n";
+		for (const auto& store : allResources)
+		{
+			const auto& resource(ResourceDef::Get(store.first));
+			ostream << "\t" << resource.name << ": " << store.second.quantity
+				<< " -- " << resource.description << "\n";
+		}
+
 		ostream << "Buildings:\n";
 		for (const auto& bpair : allBuildings)
 		{
 			ostream << "\tID " << static_cast<size_t>(bpair.first) << ": ";
 
-			const auto buildingDef(BuildingDef::TryGet(bpair.second.building));
+			const auto buildingDef(BuildingDef::TryGet(bpair.second.definition));
 			if (!buildingDef)
 			{
 				ostream << "[UNKNOWN]\n";
@@ -108,13 +149,14 @@ namespace Z
 
 			ostream << "\t\tCitizens employed: " << bpair.second.citizensEmployed.size() << "\n";
 
-			auto& production(bpair.second.production);
-			const auto& productionDef(ProductionDef::TryGet(production.production));
+			const auto& production(bpair.second.production);
+			const auto& productionDef(ProductionDef::TryGet(production.definition));
 			if (productionDef)
 			{
 				ostream << "\t\tProduction: " << productionDef->name << "\n";
 				ostream << "\t\t\tGeneration: " << production.generation << "\n";
 				ostream << "\t\t\tState: " << (int)production.state << "\n";
+				ostream << "\t\t\tTime remaining: " << production.timeRemaining << "\n";
 			}
 		}
 
