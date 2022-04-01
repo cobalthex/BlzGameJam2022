@@ -7,7 +7,16 @@
 		{
 			"Name": "Growth_T7",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "Landmass",
+			"Enabled": true
 		}
 	]
 }
