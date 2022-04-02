@@ -7,8 +7,6 @@
 class Colony : ISystem
 {
 public:
-	static Colony Default; // todo: not this
-
 	Colony();
 	virtual ~Colony();
 	Colony(const Colony&) = delete;

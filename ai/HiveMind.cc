@@ -14,8 +14,6 @@ bool EmployeePriorityComparer::operator()(Citizen::Id a, Citizen::Id b)
 	return hydratedA->proficiency > hydratedB->proficiency;
 }
 
-HiveMind HiveMind::Default{};
-
 HiveMind::HiveMind()
 {
 	Z::OnAddCitizen.Add(this, &HiveMind::OnAddCitizen);

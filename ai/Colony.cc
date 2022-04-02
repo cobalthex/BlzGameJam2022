@@ -1,15 +1,13 @@
 #include "Colony.hh"
 #include "Z.hh"
 
-Colony Colony::Default{};
-
 Colony::Colony()
 {
-	//Z::OnAddCitizen.Add(this, &Colony::OnAddCitizen);
-	//Z::OnAddBuilding.Add(this, &Colony::OnAddBuilding);
-	//
-	//Z::OnRemoveCitizen.Add(this, &Colony::OnRemoveCitizen);
-	//Z::OnRemoveBuilding.Add(this, &Colony::OnRemoveBuilding);
+	Z::OnAddCitizen.Add(this, &Colony::OnAddCitizen);
+	Z::OnAddBuilding.Add(this, &Colony::OnAddBuilding);
+	
+	Z::OnRemoveCitizen.Add(this, &Colony::OnRemoveCitizen);
+	Z::OnRemoveBuilding.Add(this, &Colony::OnRemoveBuilding);
 }
 
 Colony::~Colony()

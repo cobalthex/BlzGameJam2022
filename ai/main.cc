@@ -25,23 +25,35 @@ int main(int argc, char* argv[])
 		std::ifstream fin("data/definitions.json");
 		nlohmann::json json(nlohmann::json::parse(fin, nullptr, true /* allow exceptions */, true /* ignore comments */));
 
-		for (const auto& rd : json["resources"])
+		for (const auto& jso : json["resources"])
 		{
-			ResourceDef resDef;
-			rd.get_to(resDef);
-			ResourceDef::Add(resDef);
+			ResourceDef def;
+			jso.get_to(def);
+			ResourceDef::Add(def);
 		}
-		for (const auto& pd : json["productions"])
+		for (const auto& jso : json["disciplines"])
 		{
-			ProductionDef prodDef;
-			pd.get_to(prodDef);
-			ProductionDef::Add(prodDef);
+			Discipline def;
+			jso.get_to(def);
+			Discipline::Add(def);
 		}
-		for (const auto& bd : json["buildings"])
+		for (const auto& jso : json["productions"])
 		{
-			BuildingDef bldgDef;
-			bd.get_to(bldgDef);
-			BuildingDef::Add(bldgDef);
+			ProductionDef def;
+			jso.get_to(def);
+			ProductionDef::Add(def);
+		}
+		for (const auto& jso : json["zoningRestrictions"])
+		{
+			ZoningRestriction def;
+			jso.get_to(def);
+			ZoningRestriction::Add(def);
+		}
+		for (const auto& jso : json["buildings"])
+		{
+			BuildingDef def;
+			jso.get_to(def);
+			BuildingDef::Add(def);
 		}
 	}
 	catch (const std::exception& e)
@@ -50,7 +62,8 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	// TODO
+	Colony colony;
+	HiveMind hiveMind;
 
 	std::random_device random;
 
@@ -66,8 +79,8 @@ int main(int argc, char* argv[])
 		case '1':
 			Z::Tick();
 
-			Colony::Default.Update(time);
-			HiveMind::Default.Update(time);
+			colony.Update(time);
+			hiveMind.Update(time);
 			break;
 		case '2':
 			std::cout << Z::State << "\n";
@@ -75,7 +88,9 @@ int main(int argc, char* argv[])
 
 		case '3':
 			std::cout << "Resources:\n" << ResourceDef::Definitions << "\n";
+			std::cout << "Disciplines:\n" << Discipline::Definitions << "\n";
 			std::cout << "Productions:\n" << ProductionDef::Definitions << "\n";
+			std::cout << "Zoning restrictions:\n" << ZoningRestriction::Definitions << "\n";
 			std::cout << "Buildings:\n" << BuildingDef::Definitions << "\n";
 			break;
 
@@ -89,7 +104,7 @@ int main(int argc, char* argv[])
 				std::cout << "No building definitions available";
 				break;
 			}
-			Colony::Default.Provision(BuildingDef::Get(BuildingDef::Id(random() % BuildingDef::Count() + 1)));
+			colony.Provision(BuildingDef::Get(BuildingDef::Id(random() % BuildingDef::Count() + 1)));
 			break;
 
 		case 'q':

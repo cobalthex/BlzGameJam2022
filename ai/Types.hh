@@ -91,6 +91,8 @@ struct IDef : public IIdent<TDef>
 	}
 
 private:
+	// store as pointers so the storage doesn't move?
+	// then return pointers directly? (there's no way to remove these so)
 	static std::vector<TDef> s_definitions;
 	static std::unordered_map<std::string, typename IIdent<TDef>::Id> s_definitionsByName;
 };
@@ -120,19 +122,13 @@ extern std::ostream& operator <<(std::ostream&, const Resource&);
 extern void to_json(nlohmann::json&, const Resource&);
 extern void from_json(const nlohmann::json&, Resource&);
 
-// rough groupings for job types
-// todo: make data driven
-enum class Discipline
+struct Discipline : public IDef<Discipline>
 {
-	Unknown,
-	Construction,
-	Farming,
-	Cooking,
-	Mining,
-	HeavyIndustry,
-	Retail,
-	Government,
+	std::string name;
 };
+extern std::ostream& operator <<(std::ostream&, const Discipline&);
+extern void to_json(nlohmann::json&, const Discipline&);
+extern void from_json(const nlohmann::json&, Discipline&);
 
 struct Citizen : public IIdent<Citizen>
 {
@@ -142,7 +138,7 @@ struct Citizen : public IIdent<Citizen>
 	int proficiency; // increases the longer a citizen performs their job
 					  // changing job disciplines resets this
 
-	Discipline lastDiscipline;
+	Discipline::Id lastDiscipline; // should these be pointers?
 
 	// TODO: goal planning state machine
 };
@@ -197,16 +193,14 @@ struct Production
 	std::vector<Resource> waitingInputs;
 };
 
-// todo: data defined
-enum class ZoningRestriction
+struct ZoningRestriction : public IDef<ZoningRestriction>
 {
-	None,
-	Transit, // roads/etc
-	Industrial, // base production facilities
-	Commercial, // citizens can utilize these directly
-	Residential, // Where citizens can live
-	Administrative, // government/defense
+	std::string name;
 };
+extern std::ostream& operator <<(std::ostream&, const ZoningRestriction&);
+extern void to_json(nlohmann::json&, const ZoningRestriction&);
+extern void from_json(const nlohmann::json&, ZoningRestriction&);
+
 
 enum class BuildingState
 {

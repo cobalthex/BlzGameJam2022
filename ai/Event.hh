@@ -4,6 +4,7 @@
 #include <utility>
 #include <functional>
 #include <unordered_map>
+#include <iostream>
 
 template <typename... TArgs>
 class Event

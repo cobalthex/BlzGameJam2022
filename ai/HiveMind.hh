@@ -13,8 +13,6 @@ struct EmployeePriorityComparer
 class HiveMind : public ISystem
 {
 public:
-	static HiveMind Default; // todo: not this
-
 	HiveMind();
 	virtual ~HiveMind();
 	HiveMind(const HiveMind&) = delete;
@@ -32,7 +30,7 @@ private:
 	void OnRemoveBuilding(Building& definition);
 
 private:
-	std::unordered_map<Discipline, std::priority_queue<Citizen::Id, std::vector<Citizen::Id>, EmployeePriorityComparer>> m_joblessCitizens;
+	std::unordered_map<Discipline::Id, std::priority_queue<Citizen::Id, std::vector<Citizen::Id>, EmployeePriorityComparer>> m_joblessCitizens;
 
 	// hacky workaround for circular references
 	std::unordered_map<Citizen::Id, Building::Id> m_citizensToBuildings;
