@@ -104,8 +104,18 @@
 
     "buildings": [
         {
+            "name": "Iron mine",
+            "zone": "Industrial",
+            "production": "Mine iron"
+        },
+        {
+            "name": "Coal mine",
+            "zone": "Industrial",
+            "production": "Mine coal"
+        },
+        {
             "name": "Steel mill",
-            "zone": 2,
+            "zone": "Industrial",
             "production": "Make steel"
         }
     ]

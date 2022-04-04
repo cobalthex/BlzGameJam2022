@@ -1,33 +1,20 @@
 #include "Colony.hh"
 #include "Z.hh"
 
-Colony::Colony()
+Colony::Colony(Z& z)
+	: m_z(z)
 {
-	Z::OnAddCitizen.Add(this, &Colony::OnAddCitizen);
-	Z::OnAddBuilding.Add(this, &Colony::OnAddBuilding);
-	
-	Z::OnRemoveCitizen.Add(this, &Colony::OnRemoveCitizen);
-	Z::OnRemoveBuilding.Add(this, &Colony::OnRemoveBuilding);
+	m_z.OnAddBuilding.Add(this, &Colony::OnAddBuilding);
+	m_z.OnRemoveBuilding.Add(this, &Colony::OnRemoveBuilding);
 }
 
 Colony::~Colony()
 {
-	Z::OnAddCitizen.Remove(this, &Colony::OnAddCitizen);
-	Z::OnAddBuilding.Remove(this, &Colony::OnAddBuilding);
-
-	Z::OnRemoveCitizen.Remove(this, &Colony::OnRemoveCitizen);
-	Z::OnRemoveBuilding.Remove(this, &Colony::OnRemoveBuilding);
+	m_z.OnAddBuilding.Remove(this, &Colony::OnAddBuilding);
+	m_z.OnRemoveBuilding.Remove(this, &Colony::OnRemoveBuilding);
 }
 
-void Colony::OnAddCitizen(Citizen& citizen)
-{
-
-}
 void Colony::OnAddBuilding(Building& building)
-{
-}
-
-void Colony::OnRemoveCitizen(Citizen& citizen)
 {
 
 }
@@ -42,6 +29,7 @@ Building::Id Colony::Provision(BuildingDef::Id buildingDefId)
 	{
 		.definition = buildingDef,
 		.state = BuildingState::Constructing,
+		.size = 1,
 		.production
 		{
 			.definition = buildingDef.production,
@@ -50,10 +38,10 @@ Building::Id Colony::Provision(BuildingDef::Id buildingDefId)
 		},
 		.citizensEmployed = {},
 	};
-	return Z::Add(building);
+	return m_z.Add(building);
 }
 
-int CalculateScale(const ProductionScale& scalar, size_t citizensEmployed, long long value)
+int Colony::CalculateScale(const ProductionScale& scalar, size_t citizensEmployed, long long value)
 {
 	float scale = citizensEmployed * scalar.coefficient;
 	switch (scalar.method)
@@ -67,9 +55,9 @@ int CalculateScale(const ProductionScale& scalar, size_t citizensEmployed, long 
 	}
 }
 
-void Colony::Update(const TimeStep& time)
+void Colony::UpdateProductions(const TimeStep& time)
 {
-	const auto bldgIter(Z::AllBuildings());
+	const auto bldgIter(m_z.AllBuildings());
 	for (auto bpair(bldgIter.begin); bpair != bldgIter.end; ++bpair)
 	{
 		const auto buildingDef(BuildingDef::TryGet(bpair->second.definition));
@@ -101,7 +89,7 @@ void Colony::Update(const TimeStep& time)
 			for (size_t i = 0; i < production.waitingInputs.size(); ++i)
 			{
 				auto& input(production.waitingInputs[i]);
-				input.quantity -= Z::TryWithdraw(input, true);
+				input.quantity -= m_z.TryWithdraw(input, true);
 				if (input.quantity <= 0)
 				{
 					production.waitingInputs[i] = production.waitingInputs.back();
@@ -137,14 +125,14 @@ void Colony::Update(const TimeStep& time)
 				for (Resource output : productionDef->outputs)
 				{
 					output.quantity = CalculateScale(
-						productionDef->resourceScalar, 
+						productionDef->resourceScalar,
 						(int)bpair->second.citizensEmployed.size(), output.quantity);
-					Z::Deposit(output);
+					m_z.Deposit(output);
 				}
 
 				for (auto citizenId : bpair->second.citizensEmployed)
 				{
-					auto citizen(Z::TryGet(citizenId));
+					auto citizen(m_z.TryGet(citizenId));
 					if (!citizen)
 						continue;
 
@@ -159,4 +147,11 @@ void Colony::Update(const TimeStep& time)
 			break;
 		}
 	}
+}
+
+void Colony::Update(const TimeStep& time)
+{
+	UpdateProductions(time);
+
+
 }

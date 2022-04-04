@@ -14,12 +14,6 @@ void PrintMenu();
 
 int main(int argc, char* argv[])
 {
-	TimeStep time
-	{
-		.delta = Duration(1),
-		.now = Duration(0),
-	};
-
 	try
 	{
 		std::ifstream fin("data/definitions.json");
@@ -62,14 +56,23 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	Colony colony;
-	HiveMind hiveMind;
+	Z z;
+	Colony colony(z);
+	HiveMind hiveMind(z);
 
 	std::random_device random;
 
+	TimeStep time
+	{
+		.now = Duration(0),
+	};
+
+	std::chrono::high_resolution_clock::time_point then;
+
 	while (true)
 	{
-		time.now += time.delta;
+		const auto now(std::chrono::high_resolution_clock::now());
+		time.Advance(now - then);
 
 		PrintMenu();
 		const auto key(std::cin.get());
@@ -77,13 +80,11 @@ int main(int argc, char* argv[])
 		switch (key)
 		{
 		case '1':
-			Z::Tick();
-
 			colony.Update(time);
 			hiveMind.Update(time);
 			break;
 		case '2':
-			std::cout << Z::State << "\n";
+			std::cout << z << "\n";
 			break;
 
 		case '3':
@@ -95,7 +96,7 @@ int main(int argc, char* argv[])
 			break;
 
 		case '4':
-			Z::Add(Citizen{});
+			z.Add(Citizen{});
 			break;
 
 		case '5':
@@ -115,6 +116,8 @@ int main(int argc, char* argv[])
 			std::cout << "Unknown key: '" << (char)key << "' (" << key << ")";
 		}
 		std::cout << std::endl;
+
+		then = now;
 	}
 
 	return 0;

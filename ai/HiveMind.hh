@@ -1,28 +1,32 @@
-#pragma once
+﻿#pragma once
 
 #include "Systems.hh"
+#include "Z.hh"
 #include <unordered_map>
 #include <queue>
-
-struct EmployeePriorityComparer
-{
-	bool operator()(Citizen::Id a, Citizen::Id b);
-};
 
 // Manages citizens
 class HiveMind : public ISystem
 {
+	struct EmployeePriorityComparer
+	{
+		Z& z;
+
+		EmployeePriorityComparer(Z& z) : z(z) { }
+		bool operator()(Citizen::Id a, Citizen::Id b);
+	};
+
 public:
-	HiveMind();
+	HiveMind(Z& z);
 	virtual ~HiveMind();
 	HiveMind(const HiveMind&) = delete;
 	HiveMind operator=(const HiveMind&) = delete;
 
 	virtual void Update(const TimeStep& time) override;
 
-	void Employ(Duration now, Citizen::Id citizen, Building::Id definition); // make private
-
 private:
+	void Employ(Citizen::Id citizen, Building::Id definition);
+
 	void OnAddCitizen(Citizen& citizen);
 	void OnAddBuilding(Building& definition);
 
@@ -30,6 +34,9 @@ private:
 	void OnRemoveBuilding(Building& definition);
 
 private:
+	Z& m_z; // unsafe but ¯\_(ツ)_/¯
+
+	EmployeePriorityComparer m_comparer;
 	std::unordered_map<Discipline::Id, std::priority_queue<Citizen::Id, std::vector<Citizen::Id>, EmployeePriorityComparer>> m_joblessCitizens;
 
 	// hacky workaround for circular references

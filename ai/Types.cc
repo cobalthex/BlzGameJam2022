@@ -150,7 +150,10 @@ void from_json(const nlohmann::json & json, ZoningRestriction & zone)
 void from_json(const nlohmann::json& json, BuildingDef& def)
 {
 	if (json.contains("name")) json["name"].get_to(def.name);
-	if (json.contains("zone")) json["zone"].get_to(def.zone);
+	if (json.contains("zone"))
+	{
+		def.zone = ZoningRestriction::TryGetId(json["zone"].get<std::string>());
+	}
 	if (json.contains("production"))
 	{
 		def.production = ProductionDef::TryGetId(json["production"].get<std::string>());

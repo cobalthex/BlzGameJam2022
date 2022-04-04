@@ -28,3 +28,5 @@ std::string Join(const std::string_view& sep, const TIterable<TArgs...>& iterabl
 	str.seekp(sep.length(), std::ios::end);
 	return str.str();
 }
+
+void DebugLog(const char* log);

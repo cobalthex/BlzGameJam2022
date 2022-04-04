@@ -5,10 +5,10 @@
 #include <unordered_map>
 
 // Stores all of the citizen and building data.
-namespace Z
+// rename 'Simulation' ?
+class Z
 {
-	void Tick(); // call at the beginning of every frame
-
+public:
 	void Deposit(Resource resource);
 	int TryWithdraw(const Resource& resource, bool allowPartial);
 
@@ -29,15 +29,41 @@ namespace Z
 	Iterator<std::unordered_map<ResourceDef::Id, Resource>> AllResources();
 
 	// called just after addition
-	extern Event<Citizen&> OnAddCitizen;
-	extern Event<Building&> OnAddBuilding;
+	Event<Citizen&> OnAddCitizen;
+	Event<Building&> OnAddBuilding;
 
 	// called just before removal
-	extern Event<Citizen&> OnRemoveCitizen;
-	extern Event<Building&> OnRemoveBuilding;
+	Event<Citizen&> OnRemoveCitizen;
+	Event<Building&> OnRemoveBuilding;
 
-	std::ostream& State(std::ostream& ostream);
+private:
+	friend std::ostream& operator <<(std::ostream&, const Z& z);
+
+private:
+	struct ResourceDelta
+	{
+		const int windowSize = 100;
+
+		float average;
+
+		ResourceDelta& operator +=(int quantity);
+		inline ResourceDelta& operator -=(int quantity)
+		{
+			return operator +=(-quantity);
+		}
+	};
+
+	std::unordered_map<ResourceDef::Id, Resource> m_allResources;
+	std::unordered_map<ResourceDef::Id, ResourceDelta> m_resourceDeltas;
+
+	std::unordered_map<Citizen::Id, Citizen> m_allCitizens;
+	std::unordered_map<Building::Id, Building> m_allBuildings;
+
+	Building::Id m_nextBuildingId;
+	Citizen::Id m_nextCitizenId;
 };
+
+extern std::ostream& operator <<(std::ostream&, const Z& z);
 
 /* some design stuff
 

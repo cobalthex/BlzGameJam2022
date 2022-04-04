@@ -74,6 +74,12 @@ public:
 			handler.handler(std::forward<TArgs>(args)...); // gross
 	}
 
+	void Clear()
+	{
+		m_handlers.clear();
+		m_entryMappings.clear();
+	}
+
 private:
 	struct HandlerEntry
 	{

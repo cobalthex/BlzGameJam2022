@@ -5,7 +5,7 @@
 #include <string_view>
 #include <chrono>
 
-using Duration = std::chrono::nanoseconds;
+using Duration = std::chrono::high_resolution_clock::duration;
 namespace std::chrono
 {
 	void from_json(const nlohmann::json&, Duration&);
@@ -27,6 +27,18 @@ struct CIterator
 
 	T::const_iterator begin;
 	T::const_iterator end;
+};
+
+struct TimeStep
+{
+	Duration delta;
+	Duration now; // since game/sim start
+
+	void Advance(Duration deltaSinceLastStep)
+	{
+		delta = deltaSinceLastStep;
+		now = now;
+	}
 };
 
 template <typename TBase>
@@ -147,6 +159,7 @@ enum class ProductionScaleMethod
 {
 	Linear,
 	Constant,
+	ScaleWithSize, // scale with building size, not employees
 };
 
 struct ProductionScale
@@ -201,19 +214,11 @@ extern std::ostream& operator <<(std::ostream&, const ZoningRestriction&);
 extern void to_json(nlohmann::json&, const ZoningRestriction&);
 extern void from_json(const nlohmann::json&, ZoningRestriction&);
 
-
-enum class BuildingState
-{
-	Constructing,
-	Demolishing,
-	InUse,
-	Abandoned,
-};
-
+// merge with production?
 struct BuildingDef : public IDef<BuildingDef>
 {
 	std::string name;
-	ZoningRestriction zone;
+	ZoningRestriction::Id zone;
 
 	ProductionDef::Id production;
 };
@@ -221,18 +226,20 @@ extern std::ostream& operator <<(std::ostream&, const BuildingDef&);
 extern void to_json(nlohmann::json&, const BuildingDef&);
 extern void from_json(const nlohmann::json&, BuildingDef&);
 
+enum class BuildingState
+{
+	Constructing,
+	Demolishing,
+	InUse, // better name?
+};
+
 struct Building : public IIdent<Building>
 {
 	BuildingDef::Id definition;
 
 	BuildingState state;
+	int size;
 
 	Production production;
 	std::vector<Citizen::Id> citizensEmployed;
-};
-
-struct TimeStep
-{
-	Duration delta;
-	Duration now; // since game/sim start
 };

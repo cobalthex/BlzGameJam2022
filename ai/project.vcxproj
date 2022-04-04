@@ -114,7 +114,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
@@ -150,6 +150,7 @@
   <ItemGroup>
     <ClCompile Include="Colony.cc" />
     <ClCompile Include="Types.cc" />
+    <ClCompile Include="Utils.cc" />
     <ClCompile Include="Z.cc" />
     <ClInclude Include="Utils.hh" />
     <ClInclude Include="Z.hh" />
