@@ -9,6 +9,19 @@
 class Z
 {
 public:
+	struct ResourceDelta
+	{
+		static const int windowSize = 1000;
+
+		float average;
+
+		ResourceDelta& operator +=(int quantity);
+		inline ResourceDelta& operator -=(int quantity)
+		{
+			return operator +=(-quantity);
+		}
+	};
+
 	void Deposit(Resource resource);
 	int TryWithdraw(const Resource& resource, bool allowPartial);
 
@@ -24,9 +37,10 @@ public:
 	Citizen& Get(Citizen::Id citizenId);
 	Building& Get(Building::Id buildingId);
 
-	Iterator<std::unordered_map<Citizen::Id, Citizen>> AllCitizens();
-	Iterator<std::unordered_map<Building::Id, Building>> AllBuildings();
-	Iterator<std::unordered_map<ResourceDef::Id, Resource>> AllResources();
+	Iterator<std::unordered_map<Citizen::Id, Citizen>> AllCitizens() { return Iterator(m_allCitizens); }
+	Iterator<std::unordered_map<Building::Id, Building>> AllBuildings() { return Iterator(m_allBuildings); }
+	Iterator<std::unordered_map<ResourceDef::Id, Resource>> AllResources() { return Iterator(m_allResources); }
+	CIterator<std::unordered_map<ResourceDef::Id, ResourceDelta>> ResourceDeltas() const { return CIterator(m_resourceDeltas); }
 
 	// called just after addition
 	Event<Citizen&> OnAddCitizen;
@@ -36,23 +50,15 @@ public:
 	Event<Citizen&> OnRemoveCitizen;
 	Event<Building&> OnRemoveBuilding;
 
+	void ResetDelta(ResourceDef::Id resource)
+	{
+		m_resourceDeltas.erase(resource);
+	}
+
 private:
 	friend std::ostream& operator <<(std::ostream&, const Z& z);
 
 private:
-	struct ResourceDelta
-	{
-		const int windowSize = 100;
-
-		float average;
-
-		ResourceDelta& operator +=(int quantity);
-		inline ResourceDelta& operator -=(int quantity)
-		{
-			return operator +=(-quantity);
-		}
-	};
-
 	std::unordered_map<ResourceDef::Id, Resource> m_allResources;
 	std::unordered_map<ResourceDef::Id, ResourceDelta> m_resourceDeltas;
 

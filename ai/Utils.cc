@@ -11,4 +11,11 @@ void DebugLog(const char* log)
     OutputDebugStringA(log);
 }
 
+#else
+
+void DebugLog(const char* log)
+{
+    std::cout << "DEBUG: " << log;
+}
+
 #endif

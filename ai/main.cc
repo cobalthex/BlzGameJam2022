@@ -7,6 +7,8 @@
 #include <iostream>
 #include <fstream>
 #include <random>
+#include <thread>
+#include <mutex>
 
 // TODO: Precompiled header
 
@@ -62,32 +64,44 @@ int main(int argc, char* argv[])
 
 	std::random_device random;
 
-	TimeStep time
-	{
-		.now = Duration(0),
-	};
-
 	std::chrono::high_resolution_clock::time_point then;
+
+	std::mutex cliMutex;
+
+	std::jthread sim([&](std::stop_token st)
+	{
+		TimeStep time
+		{
+			.now = Duration(0),
+		};
+
+		while (!st.stop_requested())
+		{
+			const std::lock_guard lock(cliMutex);
+
+			const auto now(std::chrono::high_resolution_clock::now());
+			time.Advance(now - then);
+
+			colony.Update(time);
+			hiveMind.Update(time);
+
+			then = now;
+		}
+	});
 
 	while (true)
 	{
-		const auto now(std::chrono::high_resolution_clock::now());
-		time.Advance(now - then);
-
 		PrintMenu();
 		const auto key(std::cin.get());
 		std::cin.get(); // remove enter
+		const std::lock_guard lock(cliMutex);
 		switch (key)
 		{
 		case '1':
-			colony.Update(time);
-			hiveMind.Update(time);
-			break;
-		case '2':
 			std::cout << z << "\n";
 			break;
 
-		case '3':
+		case '2':
 			std::cout << "Resources:\n" << ResourceDef::Definitions << "\n";
 			std::cout << "Disciplines:\n" << Discipline::Definitions << "\n";
 			std::cout << "Productions:\n" << ProductionDef::Definitions << "\n";
@@ -95,11 +109,11 @@ int main(int argc, char* argv[])
 			std::cout << "Buildings:\n" << BuildingDef::Definitions << "\n";
 			break;
 
-		case '4':
+		case '3':
 			z.Add(Citizen{});
 			break;
 
-		case '5':
+		case '4':
 			if (BuildingDef::Count() < 1)
 			{
 				std::cout << "No building definitions available";
@@ -110,14 +124,13 @@ int main(int argc, char* argv[])
 
 		case 'q':
 		case 'Q':
+			sim.request_stop();
 			return 0;
 
 		default:
 			std::cout << "Unknown key: '" << (char)key << "' (" << key << ")";
 		}
 		std::cout << std::endl;
-
-		then = now;
 	}
 
 	return 0;
@@ -128,11 +141,10 @@ void PrintMenu()
 	std::cout <<
 		"Simulation:"
 		"\n--------"
-		"\n1: Tick"
-		"\n2: State"
-		"\n3: Definitions"
-		"\n4: Provision citizen"
-		"\n5: Provision random building"
+		"\n1: State"
+		"\n2: Definitions"
+		"\n3: Provision citizen"
+		"\n4: Provision random building"
 		"\nQ: Quit"
 		"\n";
 }

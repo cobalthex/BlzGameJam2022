@@ -6,6 +6,9 @@
 #include <chrono>
 
 using Duration = std::chrono::high_resolution_clock::duration;
+
+using SecondsF = std::chrono::duration<float, std::chrono::seconds::period>;
+
 namespace std::chrono
 {
 	void from_json(const nlohmann::json&, Duration&);
@@ -16,8 +19,8 @@ struct Iterator
 {
 	Iterator(T& ty) : begin(ty.begin()), end(ty.end()) { }
 
-	T::iterator begin;
-	T::iterator end;
+	typename T::iterator begin;
+	typename T::iterator end;
 };
 
 template <typename T>
@@ -25,8 +28,8 @@ struct CIterator
 {
 	CIterator(const T& ty) : begin(ty.cbegin()), end(ty.cend()) { }
 
-	T::const_iterator begin;
-	T::const_iterator end;
+	typename T::const_iterator begin;
+	typename T::const_iterator end;
 };
 
 struct TimeStep
@@ -37,7 +40,7 @@ struct TimeStep
 	void Advance(Duration deltaSinceLastStep)
 	{
 		delta = deltaSinceLastStep;
-		now = now;
+		now += delta;
 	}
 };
 
@@ -87,6 +90,8 @@ struct IDef : public IIdent<TDef>
 		s_definitionsByName[def.name] = def.id;
 		return def.id;
 	}
+
+	static const std::vector<TDef>& AllDefinitions() { return s_definitions; }
 
 	static std::ostream& Definitions(std::ostream& os)
 	{
@@ -232,6 +237,8 @@ enum class BuildingState
 	Demolishing,
 	InUse, // better name?
 };
+
+// TODO: unify buildings and productions
 
 struct Building : public IIdent<Building>
 {

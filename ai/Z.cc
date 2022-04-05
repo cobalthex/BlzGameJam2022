@@ -27,16 +27,15 @@ int Z::TryWithdraw(const Resource& resource, bool allowPartial)
 	if (resource.quantity < 0)
 		return 0;
 
+	// report requested amount for proper priority tracking
+	m_resourceDeltas[resource.definition] -= resource.quantity;
+
 	const auto& found(m_allResources.find(resource.definition));
 	if (found == m_allResources.end() || (!allowPartial && found->second.quantity < resource.quantity))
 		return 0;
 
-	// todo: add to deltas even if none left
-
 	const auto quantity(std::min(resource.quantity, found->second.quantity));
 	found->second.quantity -= quantity;
-
-	m_resourceDeltas[resource.definition] -= quantity;
 
 	return quantity;
 }
@@ -98,20 +97,6 @@ Building& Z::Get(Building::Id buildingId)
 	return m_allBuildings[buildingId];
 }
 
-Iterator<std::unordered_map<Citizen::Id, Citizen>> Z::AllCitizens()
-{
-	return Iterator(m_allCitizens);
-}
-Iterator<std::unordered_map<Building::Id, Building>> Z::AllBuildings()
-{
-	return Iterator(m_allBuildings);
-}
-
-Iterator<std::unordered_map<ResourceDef::Id, Resource>> Z::AllResources()
-{
-	return Iterator(m_allResources);
-}
-
 std::ostream& operator <<(std::ostream& ostream, const Z& z)
 {
 	ostream << "Resources:\n";
@@ -152,7 +137,7 @@ std::ostream& operator <<(std::ostream& ostream, const Z& z)
 			ostream << "\t\tProduction: " << productionDef->name << "\n";
 			ostream << "\t\t\tGeneration: " << production.generation << "\n";
 			ostream << "\t\t\tState: " << (int)production.state << "\n";
-			ostream << "\t\t\tTime remaining: " << production.timeRemaining << "\n";
+			ostream << "\t\t\tTime remaining: " << std::chrono::duration_cast<SecondsF>(production.timeRemaining) << "\n";
 		}
 	}
 

@@ -42,13 +42,13 @@ void HiveMind::OnAddCitizen(Citizen& citizen)
 	Building::Id buildingId{};
 	ptrdiff_t minSlotsAvailable = PTRDIFF_MAX;
 	const auto iter(m_z.AllBuildings());
-	for (auto it(iter.begin); it != iter.end; ++it)
+	for (auto building(iter.begin); building != iter.end; ++building)
 	{
-		const ptrdiff_t slotsAvailable(it->second.size - it->second.citizensEmployed.size());
+		const ptrdiff_t slotsAvailable(building->second.size - building->second.citizensEmployed.size());
 		if (slotsAvailable <= 0)
 			continue;
 
-		const auto& productionDef(ProductionDef::TryGet(it->second.production.definition));
+		const auto& productionDef(ProductionDef::TryGet(building->second.production.definition));
 
 		if (
 			// citizen doesn't have any specialty
@@ -56,10 +56,10 @@ void HiveMind::OnAddCitizen(Citizen& citizen)
 				slotsAvailable < minSlotsAvailable) ||
 			// prefer things the citizen can already do
 			(citizen.lastDiscipline == 
-				ProductionDef::TryGet(it->second.production.definition)->discipline)
+				ProductionDef::TryGet(building->second.production.definition)->discipline)
 			)
 		{
-			buildingId = it->first;
+			buildingId = building->first;
 			minSlotsAvailable = slotsAvailable;
 		}
 	}
@@ -174,14 +174,14 @@ void HiveMind::Employ(Citizen::Id citizenId, Building::Id buildingId)
 		+ buildingDef.name
 		+ "' (ID "
 		+ std::to_string(static_cast<size_t>(building.id))
-		+ ")";
+		+ ")\n";
 	DebugLog(log.data());
 }
 
 void HiveMind::Update(const TimeStep& time)
 {
-	auto citizenIter(m_z.AllCitizens());
-	for (auto citizen(citizenIter.begin); citizen != citizenIter.end; ++citizen)
+	auto iter(m_z.AllCitizens());
+	for (auto citizen(iter.begin); citizen != iter.end; ++citizen)
 	{
 		++citizen->second.hunger;
 

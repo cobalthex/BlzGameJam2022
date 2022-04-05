@@ -57,16 +57,16 @@ int Colony::CalculateScale(const ProductionScale& scalar, size_t citizensEmploye
 
 void Colony::UpdateProductions(const TimeStep& time)
 {
-	const auto bldgIter(m_z.AllBuildings());
-	for (auto bpair(bldgIter.begin); bpair != bldgIter.end; ++bpair)
+	const auto iter(m_z.AllBuildings());
+	for (auto building(iter.begin); building != iter.end; ++building)
 	{
-		const auto buildingDef(BuildingDef::TryGet(bpair->second.definition));
+		const auto buildingDef(BuildingDef::TryGet(building->second.definition));
 		if (!buildingDef)
 			continue;
 
 		// todo: check building state
 
-		auto& production(bpair->second.production);
+		auto& production(building->second.production);
 		const auto& productionDef(ProductionDef::TryGet(production.definition));
 		switch (production.state)
 		{
@@ -76,14 +76,14 @@ void Colony::UpdateProductions(const TimeStep& time)
 			{
 				input.quantity = CalculateScale(
 					productionDef->resourceScalar,
-					(int)bpair->second.citizensEmployed.size(), input.quantity);
+					(int)building->second.citizensEmployed.size(), input.quantity);
 				production.waitingInputs.push_back(input);
 			}
 			production.state = ProductionState::WaitingForResources;
 			break;
 
 		case ProductionState::WaitingForResources:
-			if (bpair->second.citizensEmployed.empty())
+			if (building->second.citizensEmployed.empty())
 				break;
 
 			for (size_t i = 0; i < production.waitingInputs.size(); ++i)
@@ -105,12 +105,12 @@ void Colony::UpdateProductions(const TimeStep& time)
 			break;
 
 		case ProductionState::WaitingForEmployees:
-			if (bpair->second.citizensEmployed.size() > 0)
+			if (building->second.citizensEmployed.size() > 0)
 				production.state = ProductionState::Producing;
 			break;
 
 		case ProductionState::Producing:
-			const auto citizensEmployed(bpair->second.citizensEmployed.size());
+			const auto citizensEmployed(building->second.citizensEmployed.size());
 			if (citizensEmployed < 1)
 			{
 				production.state = ProductionState::WaitingForEmployees;
@@ -126,11 +126,11 @@ void Colony::UpdateProductions(const TimeStep& time)
 				{
 					output.quantity = CalculateScale(
 						productionDef->resourceScalar,
-						(int)bpair->second.citizensEmployed.size(), output.quantity);
+						(int)building->second.citizensEmployed.size(), output.quantity);
 					m_z.Deposit(output);
 				}
 
-				for (auto citizenId : bpair->second.citizensEmployed)
+				for (auto citizenId : building->second.citizensEmployed)
 				{
 					auto citizen(m_z.TryGet(citizenId));
 					if (!citizen)
@@ -149,9 +149,67 @@ void Colony::UpdateProductions(const TimeStep& time)
 	}
 }
 
+BuildingDef::Id Colony::TryGetBuildingForResource(ResourceDef::Id resource) const
+{
+	if (resource == ResourceDef::Id::None)
+		return BuildingDef::Id::None;
+
+	BuildingDef::Id buildingDefId{};
+	int maxQuantity = 0;
+
+	// todo: store buildings by output type
+	for (const auto& buildingDef : BuildingDef::AllDefinitions())
+	{
+		const auto& productionDef(ProductionDef::TryGet(buildingDef.production));
+		if (!productionDef)
+			continue;
+
+		for (const auto& output : productionDef->outputs)
+		{
+			if (output.definition != resource)
+				continue;
+
+			if (output.quantity > maxQuantity)
+			{
+				buildingDefId = buildingDef.id;
+				maxQuantity = output.quantity;
+			}
+		}
+	}
+
+	return buildingDefId;
+}
+
 void Colony::Update(const TimeStep& time)
 {
 	UpdateProductions(time);
 
+	// check available slots for provisioning
 
+	if (m_nextProvisionTime <= time.now)
+	{
+
+		// only provisions one at a time
+		ResourceDef::Id desiredResource{};
+		float maxDelta(0);
+		const auto deltas(m_z.ResourceDeltas());
+		const auto& iter(m_z.ResourceDeltas());
+		for (auto delta(iter.begin); delta != iter.end; ++delta)
+		{
+			const float absDelta(std::abs(delta->second.average));
+			if (absDelta >= m_provisionThreshold && absDelta > maxDelta)
+			{
+				desiredResource = delta->first;
+				maxDelta = absDelta;
+			}
+		}
+
+		const auto bldgDefId(TryGetBuildingForResource(desiredResource));
+		if (bldgDefId != BuildingDef::Id::None)
+		{
+			Provision(bldgDefId);
+			m_z.ResetDelta(desiredResource);
+			m_nextProvisionTime = time.now + c_provisionDelay;
+		}
+	}
 }

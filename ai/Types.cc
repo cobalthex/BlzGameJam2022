@@ -1,7 +1,6 @@
 #include "Types.hh"
 #include "Utils.hh"
 
-using SecondsF = std::chrono::duration<float, std::chrono::seconds::period>;
 
 namespace std::chrono
 {
